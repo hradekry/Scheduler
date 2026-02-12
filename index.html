@@ -114,17 +114,9 @@
         .toggle-switch.on .toggle-knob{left:24px}
         .context-switcher{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);width:56px;height:56px;border-radius:50%;background:#a855f7;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(168,85,247,.3);transition:all .3s;z-index:40}
         .context-switcher:hover{background:#9333ea;transform:translateX(-50%) scale(1.05)}
-        .context-switcher.open{background:#000;border:2px solid #a855f7}
-        .context-menu{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#0a0a0a;border:1px solid #a855f7;border-radius:12px;padding:8px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;z-index:39}
-        .context-menu.show{display:block;animation:slideUp .2s ease-out}
-        .context-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:8px;cursor:pointer;transition:background .2s;color:#fff}
-        .context-item:hover{background:rgba(168,85,247,.1)}
-        .context-item.active{background:rgba(168,85,247,.2);color:#a855f7}
-        .context-item svg{width:18px;height:18px}
-        .context-item span{font-size:14px;font-weight:500}
+        .context-switcher svg{width:22px;height:22px}
         .view-container{display:none;animation:fadeIn .2s ease-out}
         .view-container.active{display:block}
-        @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
     </style>
 </head>
@@ -153,10 +145,6 @@
             <section class="section">
                 <div class="cal-header">
                     <h2 class="section-title">Calendar</h2>
-                    <div class="cal-nav">
-                        <button class="cal-btn" onclick="previousMonth()">‹</button>
-                        <button class="cal-btn" onclick="nextMonth()">›</button>
-                    </div>
                 </div>
                 <div class="calendar-grid" id="calendar">
                     <!-- Calendar will be rendered here -->
@@ -242,46 +230,9 @@
     </div>
 
     <!-- Context Switcher -->
-    <button class="context-switcher" id="contextSwitcher" onclick="toggleContextMenu()">
-        <div style="position: relative; width: 24px; height: 24px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="position: absolute;">
-                <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L13 16M17 20L21 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span id="contextEmoji" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; line-height: 1;">📅</span>
-        </div>
+    <button class="context-switcher" id="contextSwitcher" onclick="cycleContext()" aria-label="Switch context">
+        <svg id="contextIcon" viewBox="0 0 24 24" fill="none"></svg>
     </button>
-
-    <!-- Context Menu -->
-    <div class="context-menu" id="contextMenu">
-        <div class="context-item active" onclick="switchContext('calendar')">
-            <svg viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
-                <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
-                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            <span>Calendar</span>
-        </div>
-        <div class="context-item" onclick="switchContext('tasks')">
-            <svg viewBox="0 0 24 24" fill="none">
-                <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Tasks</span>
-        </div>
-        <div class="context-item" onclick="switchContext('metrics')">
-            <svg viewBox="0 0 24 24" fill="none">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Metrics</span>
-        </div>
-        <div class="context-item" onclick="switchContext('coach')">
-            <svg viewBox="0 0 24 24" fill="none">
-                <path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 7l4-4 4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Coach</span>
-        </div>
-    </div>
 
     <!-- Add Event Modal -->
     <div class="overlay" id="addModal">
@@ -342,10 +293,26 @@
         let tasks = [];
         
         const CONTEXTS = {
-            calendar: { title: 'Calendar', subtitle: 'Today', emoji: '📅' },
-            tasks: { title: 'Tasks', subtitle: 'Daily Checklist', emoji: '✅' },
-            metrics: { title: 'Metrics', subtitle: 'Health Tracking', emoji: '📊' },
-            coach: { title: 'Coach', subtitle: 'AI Assistant', emoji: '🗣️' }
+            calendar: {
+                title: 'Calendar',
+                subtitle: 'Today',
+                icon: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>'
+            },
+            tasks: {
+                title: 'Tasks',
+                subtitle: 'Daily Checklist',
+                icon: '<path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+            },
+            metrics: {
+                title: 'Metrics',
+                subtitle: 'Health Tracking',
+                icon: '<path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+            },
+            coach: {
+                title: 'Coach',
+                subtitle: 'AI Assistant',
+                icon: '<path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 7l4-4 4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+            }
         };
 
         // Initialize
@@ -358,17 +325,11 @@
             });
             document.getElementById(currentContext + 'View').classList.add('active');
             
-            // Update header and emoji
+            // Update header and switcher icon
             const ctx = CONTEXTS[currentContext];
             document.getElementById('contextTitle').textContent = ctx.title;
             document.getElementById('contextSubtitle').textContent = ctx.subtitle;
-            document.getElementById('contextEmoji').textContent = ctx.emoji;
-            
-            // Update context menu
-            document.querySelectorAll('.context-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            document.querySelector(`.context-item[onclick*="${currentContext}"]`).classList.add('active');
+            document.getElementById('contextIcon').innerHTML = ctx.icon;
             
             // Render initial content
             renderContextContent(currentContext);
@@ -691,48 +652,30 @@
         }
 
         // Context Switching Functions
-        function toggleContextMenu() {
-            const menu = document.getElementById('contextMenu');
-            const switcher = document.getElementById('contextSwitcher');
-            const isOpen = menu.classList.contains('show');
-            
-            if (isOpen) {
-                menu.classList.remove('show');
-                switcher.classList.remove('open');
-            } else {
-                menu.classList.add('show');
-                switcher.classList.add('open');
-            }
-        }
+        const CONTEXT_ORDER = ['calendar', 'tasks', 'metrics', 'coach'];
 
-        function switchContext(context) {
-            // Update state
+        function setContext(context) {
             currentContext = context;
             saveData();
-            
-            // Update views
+
             document.querySelectorAll('.view-container').forEach(view => {
                 view.classList.remove('active');
             });
-            document.getElementById(context + 'View').classList.add('active');
-            
-            // Update menu
-            document.querySelectorAll('.context-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            event.currentTarget.classList.add('active');
-            
-            // Update header and emoji
+            const activeView = document.getElementById(context + 'View');
+            if (activeView) activeView.classList.add('active');
+
             const ctx = CONTEXTS[context];
             document.getElementById('contextTitle').textContent = ctx.title;
             document.getElementById('contextSubtitle').textContent = ctx.subtitle;
-            document.getElementById('contextEmoji').textContent = ctx.emoji;
-            
-            // Close menu
-            toggleContextMenu();
-            
-            // Render context-specific content
+            document.getElementById('contextIcon').innerHTML = ctx.icon;
+
             renderContextContent(context);
+        }
+
+        function cycleContext() {
+            const idx = CONTEXT_ORDER.indexOf(currentContext);
+            const next = CONTEXT_ORDER[(idx + 1) % CONTEXT_ORDER.length];
+            setContext(next);
         }
 
         function renderContextContent(context) {
@@ -826,14 +769,7 @@
             });
         });
 
-        // Close context menu on outside click
-        document.addEventListener('click', (e) => {
-            const menu = document.getElementById('contextMenu');
-            const switcher = document.getElementById('contextSwitcher');
-            if (!menu.contains(e.target) && !switcher.contains(e.target) && menu.classList.contains('show')) {
-                toggleContextMenu();
-            }
-        });
+        
 
         // ============================================================
         // COACH ENGINE
