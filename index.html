@@ -19,39 +19,40 @@
         .header h1{font-size:18px;font-weight:600}.header .sub{font-size:13px;color:#9ca3af;margin-top:1px}
         .icon-btn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:#a855f7;cursor:pointer;border-radius:6px;transition:background .2s}
         .icon-btn:hover{background:rgba(168,85,247,.1)}
-        .main{padding:16px;max-width:448px;margin:0 auto;padding-bottom:120px}
-        .section{margin-bottom:24px}
-        .section-title{font-size:14px;font-weight:600;color:#d1d5db;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
-        .card{background:#0a0a0a;border:1px solid #a855f7;border-radius:8px;padding:14px}
-        .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#a855f7;border:1px solid #a855f7;border-radius:8px;overflow:hidden}
-        .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-        .cal-nav{display:flex;align-items:center;gap:8px}
-        .cal-btn{padding:4px 8px;background:none;border:none;color:#a855f7;cursor:pointer;border-radius:4px;font-size:12px}
-        .cal-btn:hover{background:rgba(168,85,247,.1)}
-        .cal-day{aspect-square:display:flex;align-items:center;justify-content:center;font-size:13px;background:#000;cursor:pointer;transition:background .2s;position:relative}
-        .cal-day:hover{background:#111}
-        .cal-day.other-month{color:#4b5563}
-        .cal-day.today{background:#a855f7;color:#000;font-weight:600}
-        .cal-day.selected{background:#d8b4fe;color:#000}
-        .cal-day.has-events::after{content:'';position:absolute;bottom:2px;width:4px;height:4px;background:#a855f7;border-radius:50%}
-        .weekday{font-size:11px;color:#9ca3af;text-align:center;padding:4px 0;background:#0a0a0a;font-weight:500}
-        .events-list{margin-top:12px;max-height:200px;overflow-y:auto}
-        .event-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(168,85,247,.2)}
-        .event-item:last-child{border-bottom:none}
+        .main{padding:20px 16px;max-width:480px;margin:0 auto;padding-bottom:40px}
+        .section{margin-bottom:28px}
+        .section-title{font-size:13px;font-weight:600;color:#9ca3af;margin-bottom:16px;text-transform:uppercase;letter-spacing:.8px}
+        .card{background:#0a0a0a;border:1px solid #a855f7;border-radius:12px;padding:16px}
+        .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;background:#1a1a1a;border:1px solid #a855f7;border-radius:12px;overflow:hidden;padding:2px}
+        .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+        .cal-nav{display:flex;align-items:center;gap:12px}
+        .cal-btn{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;background:rgba(168,85,247,.1);border:1px solid #a855f7;color:#a855f7;cursor:pointer;border-radius:8px;font-size:14px;font-weight:600;transition:all .2s}
+        .cal-btn:hover{background:rgba(168,85,247,.2)}
+        .cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px;background:#000;cursor:pointer;transition:all .2s;position:relative;border-radius:6px;font-weight:500}
+        .cal-day:hover{background:#1a1a1a;transform:scale(1.05)}
+        .cal-day.other-month{color:#4b5563;opacity:.5}
+        .cal-day.today{background:#a855f7;color:#000;font-weight:700;box-shadow:0 0 0 2px rgba(168,85,247,.3)}
+        .cal-day.selected{background:#d8b4fe;color:#000;font-weight:600}
+        .cal-day.has-events::after{content:'';position:absolute;bottom:4px;width:5px;height:5px;background:#a855f7;border-radius:50%;box-shadow:0 0 4px rgba(168,85,247,.6)}
+        .weekday{font-size:10px;color:#6b7280;text-align:center;padding:8px 0;background:#0a0a0a;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+        .events-list{display:flex;flex-direction:column;gap:10px}
+        .event-item{display:flex;align-items:center;justify-content:space-between;padding:12px;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:8px;transition:all .2s}
+        .event-item:hover{background:rgba(168,85,247,.1);border-color:#a855f7}
         .event-info{flex:1}
-        .event-time{font-size:12px;color:#a855f7;margin-bottom:2px}
-        .event-title{font-size:13px;color:#fff}
-        .event-type{font-size:10px;color:#6b7280}
-        .del-btn{width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:#4b5563;cursor:pointer;border-radius:4px}.del-btn:hover{color:#ef4444}
-        .metrics-grid{display:grid;grid-template-columns:1fr;gap:12px}
-        .metric-card{background:#0a0a0a;border:1px solid #a855f7;border-radius:8px;padding:12px}
-        .metric-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-        .metric-title{font-size:13px;font-weight:500;color:#fff}
-        .metric-value{font-size:14px;color:#a855f7;font-weight:600}
-        .metric-actions{display:flex;gap:8px;margin-top:8px}
-        .metric-btn{flex:1;padding:6px;background:none;border:1px solid #a855f7;color:#a855f7;border-radius:6px;font-size:12px;cursor:pointer;transition:all .2s}
-        .metric-btn:hover{background:rgba(168,85,247,.1)}
-        .metric-btn.done{background:#a855f7;color:#000}
+        .event-time{font-size:11px;color:#a855f7;margin-bottom:4px;font-weight:600}
+        .event-title{font-size:14px;color:#fff;font-weight:500;margin-bottom:2px}
+        .event-type{font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px}
+        .del-btn{min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;cursor:pointer;border-radius:6px;transition:all .2s}.del-btn:hover{background:rgba(239,68,68,.2);border-color:#ef4444}
+        .metrics-grid{display:grid;grid-template-columns:1fr;gap:16px}
+        .metric-card{background:#0a0a0a;border:1px solid #a855f7;border-radius:12px;padding:16px;transition:all .2s}
+        .metric-card:hover{border-color:#d8b4fe;box-shadow:0 4px 12px rgba(168,85,247,.15)}
+        .metric-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+        .metric-title{font-size:14px;font-weight:600;color:#d1d5db}
+        .metric-value{font-size:16px;color:#a855f7;font-weight:700}
+        .metric-actions{display:flex;gap:10px;margin-top:12px}
+        .metric-btn{flex:1;min-height:44px;padding:10px;background:rgba(168,85,247,.1);border:1px solid #a855f7;color:#a855f7;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+        .metric-btn:hover{background:rgba(168,85,247,.2);transform:translateY(-1px)}
+        .metric-btn.done{background:#a855f7;color:#000;border-color:#a855f7}
         .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:50}
         .overlay.open{display:flex}
         .modal{background:#0a0a0a;border-top:1px solid #a855f7;width:100%;max-width:448px;border-radius:12px 12px 0 0;max-height:85vh;display:flex;flex-direction:column}
@@ -67,38 +68,38 @@
         .tbtn{padding:8px 12px;background:#000;border:1px solid #a855f7;border-radius:8px;color:#d1d5db;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;font-family:inherit;font-size:13px}
         .tbtn.on{background:#a855f7;color:#fff}
         .form-acts{display:flex;gap:8px;margin-top:14px}
-        .fbtn{flex:1;padding:8px 14px;border-radius:8px;border:1px solid #a855f7;cursor:pointer;font-size:14px;font-weight:500;transition:all .2s;font-family:inherit;min-height:44px}
-        .fbtn-c{background:#000;color:#d1d5db}.fbtn-c:hover{background:#111}
-        .fbtn-s{background:#a855f7;color:#fff}.fbtn-s:hover{background:#9333ea}.fbtn-s:disabled{opacity:.5;cursor:not-allowed}
+        .fbtn{flex:1;padding:12px 16px;border-radius:10px;border:1px solid #a855f7;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;font-family:inherit;min-height:48px}
+        .fbtn-c{background:#000;color:#d1d5db;border-color:#4b5563}.fbtn-c:hover{background:#1a1a1a;border-color:#6b7280}
+        .fbtn-s{background:#a855f7;color:#fff;border-color:#a855f7}.fbtn-s:hover{background:#9333ea;transform:translateY(-1px);box-shadow:0 4px 12px rgba(168,85,247,.3)}.fbtn-s:disabled{opacity:.5;cursor:not-allowed;transform:none}
         .fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:#a855f7;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(168,85,247,.3);transition:background .2s;z-index:40}
         .fab:hover{background:#9333ea}
-        .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:120px;text-align:center;color:#6b7280}
-        .empty-state svg{width:32px;height:32px;margin-bottom:8px}
-        .empty-state p{font-size:12px}
-        .coach-section{background:#0a0a0a;border:1px solid #a855f7;border-radius:8px;overflow:hidden}
-        .coach-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(168,85,247,.2)}
-        .coach-label{font-size:14px;font-weight:600;color:#d1d5db;display:flex;align-items:center;gap:6px}
+        .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;color:#6b7280;background:rgba(168,85,247,.03);border-radius:12px;border:1px dashed rgba(168,85,247,.2)}
+        .empty-state svg{width:40px;height:40px;margin-bottom:12px;opacity:.5}
+        .empty-state p{font-size:13px;font-weight:500}
+        .coach-section{background:#0a0a0a;border:1px solid #a855f7;border-radius:12px;overflow:hidden}
+        .coach-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid rgba(168,85,247,.2);background:rgba(168,85,247,.03)}
+        .coach-label{font-size:15px;font-weight:600;color:#fff;display:flex;align-items:center;gap:8px}
         .coach-label svg{color:#a855f7}
-        .coach-status{font-size:10px;color:#6b7280;padding:2px 8px;border:1px solid rgba(168,85,247,.2);border-radius:4px}
-        .coach-log{max-height:300px;overflow-y:auto;padding:12px 14px}
-        .coach-msg{margin-bottom:12px;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.6;color:#e5e7eb}
-        .coach-msg.coach-resp{background:#000;border-left:2px solid #a855f7}
-        .coach-msg.coach-resp.harsh{border-left-color:#ef4444}
-        .coach-msg.coach-resp.motivate{border-left-color:#f59e0b}
-        .coach-msg.coach-resp.advice{border-left-color:#22c55e}
-        .coach-msg.user-cmd{background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);text-align:right}
-        .coach-tag{font-size:9px;text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:4px;color:#a855f7}
+        .coach-status{font-size:10px;color:#22c55e;padding:4px 10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+        .coach-log{max-height:400px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+        .coach-msg{padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.7;color:#e5e7eb}
+        .coach-msg.coach-resp{background:rgba(168,85,247,.05);border-left:3px solid #a855f7}
+        .coach-msg.coach-resp.harsh{background:rgba(239,68,68,.05);border-left-color:#ef4444}
+        .coach-msg.coach-resp.motivate{background:rgba(245,158,11,.05);border-left-color:#f59e0b}
+        .coach-msg.coach-resp.advice{background:rgba(34,197,94,.05);border-left-color:#22c55e}
+        .coach-msg.user-cmd{background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);text-align:right;border-radius:10px}
+        .coach-tag{font-size:9px;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:6px;color:#a855f7}
         .coach-msg.harsh .coach-tag{color:#f87171}
         .coach-msg.motivate .coach-tag{color:#fbbf24}
         .coach-msg.advice .coach-tag{color:#4ade80}
-        .coach-input-row{display:flex;gap:8px;padding:10px 14px;border-top:1px solid rgba(168,85,247,.2)}
-        .coach-input{flex:1;padding:8px 12px;background:#000;border:1px solid #a855f7;border-radius:8px;color:#fff;font-size:13px;font-family:inherit}
-        .coach-input:focus{outline:none;border-color:#d8b4fe}
-        .coach-send{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;background:#a855f7;border:none;border-radius:8px;color:#fff;cursor:pointer;transition:background .2s}
-        .coach-send:hover{background:#9333ea}
-        .coach-quick{display:flex;gap:6px;padding:0 14px 10px;flex-wrap:wrap}
-        .coach-quick-btn{padding:4px 10px;background:none;border:1px solid rgba(168,85,247,.3);color:#d8b4fe;border-radius:6px;font-size:11px;cursor:pointer;transition:all .2s;font-family:inherit}
-        .coach-quick-btn:hover{background:rgba(168,85,247,.1);border-color:#a855f7}
+        .coach-input-row{display:flex;gap:10px;padding:14px 16px;border-top:1px solid rgba(168,85,247,.2);background:rgba(168,85,247,.02)}
+        .coach-input{flex:1;padding:12px 14px;background:#000;border:1px solid #a855f7;border-radius:10px;color:#fff;font-size:14px;font-family:inherit;transition:all .2s}
+        .coach-input:focus{outline:none;border-color:#d8b4fe;box-shadow:0 0 0 3px rgba(168,85,247,.1)}
+        .coach-send{min-width:48px;min-height:48px;display:flex;align-items:center;justify-content:center;background:#a855f7;border:none;border-radius:10px;color:#fff;cursor:pointer;transition:all .2s}
+        .coach-send:hover{background:#9333ea;transform:scale(1.05)}
+        .coach-quick{display:flex;gap:8px;padding:12px 16px;flex-wrap:wrap;border-bottom:1px solid rgba(168,85,247,.1)}
+        .coach-quick-btn{padding:6px 12px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);color:#d8b4fe;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;text-transform:uppercase;letter-spacing:.5px}
+        .coach-quick-btn:hover{background:rgba(168,85,247,.15);border-color:#a855f7;transform:translateY(-1px)}
         .feedback-banner{position:fixed;top:70px;left:16px;right:16px;max-width:416px;margin:0 auto;z-index:35;background:rgba(127,29,29,.4);border:2px solid #ef4444;border-radius:8px;padding:12px 16px;display:none;cursor:pointer;animation:pulse 2s infinite;box-shadow:0 4px 12px rgba(239,68,68,.3)}
         .feedback-banner.show{display:flex;align-items:center;gap:10px}
         .feedback-banner span{font-size:13px;color:#fef2f2;font-weight:600}
@@ -141,6 +142,13 @@
         <div id="calendarView" class="view-container active">
             <!-- Calendar Section -->
             <section class="section">
+                <div class="cal-header">
+                    <h2 class="section-title" id="currentMonth" style="margin:0">Loading...</h2>
+                    <div class="cal-nav">
+                        <button class="cal-btn" onclick="previousMonth()">‹</button>
+                        <button class="cal-btn" onclick="nextMonth()">›</button>
+                    </div>
+                </div>
                 <div class="calendar-grid" id="calendar">
                     <!-- Calendar will be rendered here -->
                 </div>
@@ -224,6 +232,14 @@
         <span id="feedbackBannerText">The Coach has words for you.</span>
     </div>
 
+    <!-- Context-Aware FAB -->
+    <button class="fab" id="contextFab" onclick="handleFabClick()" aria-label="Add">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2"/>
+            <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2"/>
+        </svg>
+    </button>
+
     <!-- Add Event Modal -->
     <div class="overlay" id="addModal">
         <div class="modal">
@@ -261,6 +277,32 @@
             <div class="modal-body">
                 <h3 style="font-size:14px;font-weight:600;color:#d1d5db;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Health Plugins</h3>
                 <div id="pluginToggles"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div class="overlay" id="taskModal">
+        <div class="modal">
+            <div class="modal-head">
+                <h2>Add Task</h2>
+                <button class="close" onclick="closeAll()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg></button>
+            </div>
+            <div class="modal-body">
+                <form id="taskForm">
+                    <div class="fg">
+                        <label class="fl">Task Title *</label>
+                        <input class="fi" id="taskTitle" placeholder="What needs to be done?" required>
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Description (Optional)</label>
+                        <textarea class="ft" id="taskDesc" placeholder="Add details..." rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-foot">
+                <button class="fbtn fbtn-c" onclick="closeAll()">Cancel</button>
+                <button class="fbtn fbtn-s" onclick="saveTask()">Add Task</button>
             </div>
         </div>
     </div>
@@ -708,21 +750,31 @@
                         <div class="event-title">${task.completed ? '<s>' + task.title + '</s>' : task.title}</div>
                         ${task.description ? `<div class="event-type">${task.description}</div>` : ''}
                     </div>
-                    <button class="del-btn" onclick="toggleTask('${task.id}')">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">${task.completed ? '<path d="M3 12h18" stroke="currentColor" stroke-width="2"/>' : '<path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'}</svg>
+                    <button class="del-btn" style="background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#22c55e" onclick="toggleTask('${task.id}')" onmouseover="this.style.background='rgba(34,197,94,.2)';this.style.borderColor='#22c55e'" onmouseout="this.style.background='rgba(34,197,94,.1)';this.style.borderColor='rgba(34,197,94,.3)'">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">${task.completed ? '<path d="M3 12h18" stroke="currentColor" stroke-width="2"/>' : '<path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'}</svg>
                     </button>
                 </div>
             `).join('');
         }
 
         function addTask() {
-            const title = prompt('Enter task title:');
-            if (!title) return;
+            document.getElementById('taskModal').classList.add('open');
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDesc').value = '';
+            document.getElementById('taskTitle').focus();
+        }
+
+        function saveTask() {
+            const title = document.getElementById('taskTitle').value.trim();
+            if (!title) {
+                alert('Please enter a task title');
+                return;
+            }
             
             const task = {
                 id: Date.now().toString(),
                 title,
-                description: '',
+                description: document.getElementById('taskDesc').value.trim(),
                 completed: false,
                 date: formatDateKey(new Date())
             };
@@ -730,6 +782,7 @@
             tasks.push(task);
             saveData();
             renderTasks();
+            closeAll();
         }
 
         function toggleTask(taskId) {
@@ -738,6 +791,24 @@
                 task.completed = !task.completed;
                 saveData();
                 renderTasks();
+            }
+        }
+
+        // Context-Aware FAB
+        function handleFabClick() {
+            switch(currentContext) {
+                case 'calendar':
+                    openAddEvent();
+                    break;
+                case 'tasks':
+                    addTask();
+                    break;
+                case 'metrics':
+                    // No action for metrics
+                    break;
+                case 'coach':
+                    document.getElementById('coachInput').focus();
+                    break;
             }
         }
 
