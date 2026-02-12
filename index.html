@@ -97,6 +97,9 @@
         .coach-input:focus{outline:none;border-color:#d8b4fe;box-shadow:0 0 0 3px rgba(168,85,247,.1)}
         .coach-send{min-width:48px;min-height:48px;display:flex;align-items:center;justify-content:center;background:#a855f7;border:none;border-radius:10px;color:#fff;cursor:pointer;transition:all .2s}
         .coach-send:hover{background:#9333ea;transform:scale(1.05)}
+        .coach-mic{min-width:48px;min-height:48px;display:flex;align-items:center;justify-content:center;background:rgba(168,85,247,.08);border:0.5px solid rgba(168,85,247,.4);border-radius:10px;color:#a855f7;cursor:pointer;transition:all .2s}
+        .coach-mic:hover{background:rgba(168,85,247,.2);border-color:#a855f7;transform:scale(1.02)}
+        .coach-mic.active{background:#a855f7;color:#000}
         .coach-quick{display:flex;gap:8px;padding:12px 16px;flex-wrap:wrap;border-bottom:1px solid rgba(168,85,247,.1)}
         .coach-quick-btn{padding:6px 12px;background:rgba(168,85,247,.06);border:0.5px solid rgba(168,85,247,.3);color:#d8b4fe;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;text-transform:uppercase;letter-spacing:.5px}
         .coach-quick-btn:hover{background:rgba(168,85,247,.15);border-color:#a855f7;transform:translateY(-1px)}
@@ -211,6 +214,9 @@
                     </div>
                     <div class="coach-input-row">
                         <input type="text" class="coach-input" id="coachInput" placeholder="Command the Coach...">
+                        <button class="coach-mic" id="coachMic" onclick="toggleVoiceInput()" title="Voice input">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" stroke="currentColor" stroke-width="2"/><path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="currentColor" stroke-width="2"/><line x1="12" y1="19" x2="12" y2="22" stroke="currentColor" stroke-width="2"/><line x1="8" y1="22" x2="16" y2="22" stroke="currentColor" stroke-width="2"/></svg>
+                        </button>
                         <button class="coach-send" onclick="sendCoachCommand()">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><line x1="22" y1="2" x2="11" y2="13" stroke="currentColor" stroke-width="2"/><polygon points="22 2 15 22 11 13 2 9 22 2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
                         </button>
@@ -288,6 +294,36 @@
         </div>
     </div>
 
+    <!-- Edit Task Modal -->
+    <div class="overlay" id="editTaskModal">
+        <div class="modal">
+            <div class="modal-head">
+                <h2>Edit Task</h2>
+                <button class="close" onclick="closeAll()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTaskForm">
+                    <div class="fg">
+                        <label class="fl">Task Title *</label>
+                        <input class="fi" id="editTaskTitle" placeholder="Task title" required>
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Description (Optional)</label>
+                        <textarea class="ft" id="editTaskDesc" placeholder="Add details..." rows="3"></textarea>
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Alarm Time (Optional)</label>
+                        <input type="time" class="fi" id="editTaskAlarm">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-foot">
+                <button class="fbtn fbtn-c" onclick="closeAll()">Cancel</button>
+                <button class="fbtn fbtn-s" onclick="saveEditTask()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // State Management
         let currentDate = new Date();
@@ -299,7 +335,7 @@
             exercise: { done: false }
         };
         let selectedEventType = 'onetime';
-        let alarms = [];
+        let editingTaskId = null;
         
         
         // Context Switching State
@@ -355,13 +391,11 @@
             const storedMetrics = localStorage.getItem('routine-os-metrics');
             const storedTasks = localStorage.getItem('routine-os-tasks');
             const storedContext = localStorage.getItem('routine-os-context');
-            const storedAlarms = localStorage.getItem('routine-os-alarms');
             
             if (storedEvents) events = JSON.parse(storedEvents);
             if (storedMetrics) metrics = JSON.parse(storedMetrics);
             if (storedTasks) tasks = JSON.parse(storedTasks);
             if (storedContext) currentContext = storedContext;
-            if (storedAlarms) alarms = JSON.parse(storedAlarms);
         }
 
         function saveData() {
@@ -369,7 +403,6 @@
             localStorage.setItem('routine-os-metrics', JSON.stringify(metrics));
             localStorage.setItem('routine-os-tasks', JSON.stringify(tasks));
             localStorage.setItem('routine-os-context', currentContext);
-            localStorage.setItem('routine-os-alarms', JSON.stringify(alarms));
         }
 
         // Calendar Functions
@@ -505,6 +538,8 @@
             if (ef) ef.reset();
             const tf = document.getElementById('taskForm');
             if (tf) tf.reset();
+            const etf = document.getElementById('editTaskForm');
+            if (etf) etf.reset();
             selectedEventType = 'onetime';
             const allTbtn = document.querySelectorAll('.tbtn');
             allTbtn.forEach(b => b.classList.remove('on'));
@@ -706,6 +741,9 @@
                         <span class="task-status ${statusClass}">${statusText}</span>
                     </div>
                     <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+                        <button class="del-btn" style="background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.3);color:#60a5fa" onclick="openEditTask('${task.id}')" title="Edit">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 20h9" stroke="currentColor" stroke-width="2"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
                         <button class="del-btn" style="background:${task.completed ? 'rgba(34,197,94,.15)' : 'rgba(34,197,94,.08)'};border-color:${task.completed ? '#22c55e' : 'rgba(34,197,94,.3)'};color:#22c55e" onclick="toggleTask('${task.id}')" title="${task.completed ? 'Undo' : 'Complete'}">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">${task.completed ? '<path d="M3 12h18" stroke="currentColor" stroke-width="2"/>' : '<path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'}</svg>
                         </button>
@@ -777,6 +815,52 @@
                 saveData();
                 renderTasks();
             }
+        }
+
+        function openEditTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            editingTaskId = taskId;
+            document.getElementById('editTaskTitle').value = task.title || '';
+            document.getElementById('editTaskDesc').value = task.description || '';
+            document.getElementById('editTaskAlarm').value = task.alarmTime || '';
+            document.getElementById('editTaskModal').classList.add('open');
+            document.getElementById('editTaskTitle').focus();
+        }
+
+        function saveEditTask() {
+            const task = tasks.find(t => t.id === editingTaskId);
+            if (!task) return;
+            const title = document.getElementById('editTaskTitle').value.trim();
+            if (!title) {
+                alert('Please enter a task title');
+                return;
+            }
+            const desc = document.getElementById('editTaskDesc').value.trim();
+            const alarmTime = document.getElementById('editTaskAlarm').value;
+
+            task.title = title;
+            task.description = desc;
+
+            if (alarmTime) {
+                const [h, m] = alarmTime.split(':').map(v => parseInt(v, 10));
+                const now = new Date();
+                const alarmDate = new Date();
+                alarmDate.setHours(h, m, 0, 0);
+                if (alarmDate <= now) alarmDate.setDate(alarmDate.getDate() + 1);
+                task.alarmTime = alarmTime;
+                task.alarmTimestamp = alarmDate.getTime();
+                task.alarmFired = false;
+                task.date = formatDateKey(alarmDate);
+            } else {
+                delete task.alarmTime;
+                delete task.alarmTimestamp;
+                delete task.alarmFired;
+            }
+
+            saveData();
+            renderTasks();
+            closeAll();
         }
 
         // Context-Aware FAB
@@ -933,6 +1017,44 @@
             coachCommand(cmd);
         }
 
+        // ---- VOICE INPUT ----
+        let voiceRecognizer = null;
+        let isListening = false;
+
+        function toggleVoiceInput() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const micBtn = document.getElementById('coachMic');
+            if (!SpeechRecognition) {
+                addCoachMessage('Voice input is not supported in this browser. Try Chrome or Edge.', 'advice');
+                return;
+            }
+            if (!voiceRecognizer) {
+                voiceRecognizer = new SpeechRecognition();
+                voiceRecognizer.lang = 'en-US';
+                voiceRecognizer.interimResults = false;
+                voiceRecognizer.maxAlternatives = 1;
+                voiceRecognizer.onresult = (event) => {
+                    const text = event.results[0][0].transcript;
+                    const input = document.getElementById('coachInput');
+                    input.value = text;
+                    sendCoachCommand();
+                };
+                voiceRecognizer.onend = () => {
+                    isListening = false;
+                    if (micBtn) micBtn.classList.remove('active');
+                };
+            }
+            if (isListening) {
+                voiceRecognizer.stop();
+                isListening = false;
+                if (micBtn) micBtn.classList.remove('active');
+                return;
+            }
+            isListening = true;
+            if (micBtn) micBtn.classList.add('active');
+            voiceRecognizer.start();
+        }
+
         // ---- ALARMS ----
         function parseAlarmTime(cmd) {
             const match = cmd.match(/(\b\d{1,2}):(\d{2})\b/);
@@ -948,28 +1070,31 @@
             return Notification.requestPermission();
         }
 
-        function scheduleAlarm(time, label) {
+        function scheduleAlarmTask(time, label) {
             const now = new Date();
             const alarmTime = new Date();
             alarmTime.setHours(time.hours, time.minutes, 0, 0);
             if (alarmTime <= now) alarmTime.setDate(alarmTime.getDate() + 1);
 
-            const alarm = {
+            const task = {
                 id: Date.now().toString(),
-                time: `${String(time.hours).padStart(2, '0')}:${String(time.minutes).padStart(2, '0')}`,
-                label: label || 'Alarm',
-                timestamp: alarmTime.getTime(),
-                fired: false
+                title: label || 'Alarm',
+                description: `Alarm at ${String(time.hours).padStart(2, '0')}:${String(time.minutes).padStart(2, '0')}`,
+                completed: false,
+                date: formatDateKey(alarmTime),
+                alarmTime: `${String(time.hours).padStart(2, '0')}:${String(time.minutes).padStart(2, '0')}`,
+                alarmTimestamp: alarmTime.getTime(),
+                alarmFired: false
             };
-            alarms.push(alarm);
+            tasks.push(task);
             saveData();
-            return alarm;
+            return task;
         }
 
-        function fireAlarm(alarm) {
-            alarm.fired = true;
+        function fireAlarm(task) {
+            task.alarmFired = true;
             saveData();
-            const body = `${alarm.label} — ${alarm.time}`;
+            const body = `${task.title} — ${task.alarmTime}`;
             if ('Notification' in window && Notification.permission === 'granted') {
                 new Notification('Routine OS Alarm', { body });
             } else {
@@ -980,8 +1105,8 @@
 
         function checkAlarms() {
             const now = Date.now();
-            alarms.filter(a => !a.fired && a.timestamp <= now).forEach(fireAlarm);
-            alarms = alarms.filter(a => !a.fired || (now - a.timestamp) < 86400000);
+            tasks.filter(t => t.alarmTimestamp && !t.alarmFired && t.alarmTimestamp <= now).forEach(fireAlarm);
+            tasks = tasks.filter(t => !t.alarmFired || !t.alarmTimestamp || (now - t.alarmTimestamp) < 86400000);
             saveData();
         }
 
@@ -1015,19 +1140,20 @@
                 }
                 requestNotificationPermission().then((perm) => {
                     const label = cmd.replace(t.text, '').replace(/alarm|notify|remind/gi, '').trim() || 'Alarm';
-                    const alarm = scheduleAlarm(t, label);
+                    const alarmTask = scheduleAlarmTask(t, label);
                     const permText = perm === 'granted' ? 'Notifications enabled.' : 'Notifications blocked — I will use an on-screen alert.';
-                    addCoachMessage(`<strong>ALARM SET</strong><br>${alarm.time} — ${esc(label)}<br><em>${permText}</em>`, 'advice');
+                    addCoachMessage(`<strong>ALARM TASK SET</strong><br>${alarmTask.alarmTime} — ${esc(label)}<br><em>${permText}</em>`, 'advice');
                 });
                 return;
             }
 
             if (cmd.includes('list alarms') || cmd.includes('alarms')) {
-                if (!alarms.length) {
+                const alarmTasks = tasks.filter(t => t.alarmTimestamp);
+                if (!alarmTasks.length) {
                     addCoachMessage('No alarms scheduled. Use: <strong>alarm 08:30 wake up</strong>.', 'advice');
                     return;
                 }
-                const list = alarms.map(a => `• ${a.time} — ${esc(a.label)}`).join('<br>');
+                const list = alarmTasks.map(a => `• ${a.alarmTime} — ${esc(a.title)}`).join('<br>');
                 addCoachMessage(`<strong>ALARMS</strong><br>${list}`, 'advice');
                 return;
             }
