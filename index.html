@@ -11,9 +11,9 @@
     <title>Routine OS</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+        body{background:#000;color:#fff;font-family:'Helvetica Neue Condensed','Helvetica Condensed',Helvetica,Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;font-stretch:condensed}
         ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0a0a0a}::-webkit-scrollbar-thumb{background:#a855f7;border-radius:2px}
-        .header{background:#0a0a0a;border-bottom:1px solid #a855f7;padding:12px 16px;position:sticky;top:0;z-index:30}
+        .header{background:#0a0a0a;border-bottom:0.5px solid rgba(168,85,247,.4);padding:12px 16px;position:sticky;top:0;z-index:30;box-shadow:0 1px 3px rgba(0,0,0,.3)}
         .header-inner{display:flex;align-items:center;justify-content:space-between;max-width:448px;margin:0 auto}
         .header-left{display:flex;align-items:center;gap:12px}
         .header h1{font-size:18px;font-weight:600}.header .sub{font-size:13px;color:#9ca3af;margin-top:1px}
@@ -22,11 +22,11 @@
         .main{padding:20px 16px;max-width:480px;margin:0 auto;padding-bottom:40px}
         .section{margin-bottom:28px}
         .section-title{font-size:13px;font-weight:600;color:#9ca3af;margin-bottom:16px;text-transform:uppercase;letter-spacing:.8px}
-        .card{background:#0a0a0a;border:1px solid #a855f7;border-radius:12px;padding:16px}
-        .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;background:#1a1a1a;border:1px solid #a855f7;border-radius:12px;overflow:hidden;padding:2px}
+        .card{background:#0a0a0a;border:0.5px solid rgba(168,85,247,.5);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+        .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;background:#1a1a1a;border:0.5px solid rgba(168,85,247,.5);border-radius:12px;overflow:hidden;padding:2px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
         .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
         .cal-nav{display:flex;align-items:center;gap:12px}
-        .cal-btn{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;background:rgba(168,85,247,.1);border:1px solid #a855f7;color:#a855f7;cursor:pointer;border-radius:8px;font-size:14px;font-weight:600;transition:all .2s}
+        .cal-btn{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;background:rgba(168,85,247,.08);border:0.5px solid rgba(168,85,247,.4);color:#a855f7;cursor:pointer;border-radius:8px;font-size:14px;font-weight:600;transition:all .2s}
         .cal-btn:hover{background:rgba(168,85,247,.2)}
         .cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px;background:#000;cursor:pointer;transition:all .2s;position:relative;border-radius:6px;font-weight:500}
         .cal-day:hover{background:#1a1a1a;transform:scale(1.05)}
@@ -36,21 +36,21 @@
         .cal-day.has-events::after{content:'';position:absolute;bottom:4px;width:5px;height:5px;background:#a855f7;border-radius:50%;box-shadow:0 0 4px rgba(168,85,247,.6)}
         .weekday{font-size:10px;color:#6b7280;text-align:center;padding:8px 0;background:#0a0a0a;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
         .events-list{display:flex;flex-direction:column;gap:10px}
-        .event-item{display:flex;align-items:center;justify-content:space-between;padding:12px;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:8px;transition:all .2s}
+        .event-item{display:flex;align-items:center;justify-content:space-between;padding:12px;background:rgba(168,85,247,.04);border:0.5px solid rgba(168,85,247,.25);border-radius:8px;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.1)}
         .event-item:hover{background:rgba(168,85,247,.1);border-color:#a855f7}
         .event-info{flex:1}
         .event-time{font-size:11px;color:#a855f7;margin-bottom:4px;font-weight:600}
         .event-title{font-size:14px;color:#fff;font-weight:500;margin-bottom:2px}
         .event-type{font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px}
-        .del-btn{min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;cursor:pointer;border-radius:6px;transition:all .2s}.del-btn:hover{background:rgba(239,68,68,.2);border-color:#ef4444}
+        .del-btn{min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;background:rgba(239,68,68,.08);border:0.5px solid rgba(239,68,68,.3);color:#ef4444;cursor:pointer;border-radius:6px;transition:all .2s}.del-btn:hover{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.6)}
         .metrics-grid{display:grid;grid-template-columns:1fr;gap:16px}
-        .metric-card{background:#0a0a0a;border:1px solid #a855f7;border-radius:12px;padding:16px;transition:all .2s}
+        .metric-card{background:#0a0a0a;border:0.5px solid rgba(168,85,247,.5);border-radius:12px;padding:16px;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.15)}
         .metric-card:hover{border-color:#d8b4fe;box-shadow:0 4px 12px rgba(168,85,247,.15)}
         .metric-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
         .metric-title{font-size:14px;font-weight:600;color:#d1d5db}
         .metric-value{font-size:16px;color:#a855f7;font-weight:700}
         .metric-actions{display:flex;gap:10px;margin-top:12px}
-        .metric-btn{flex:1;min-height:44px;padding:10px;background:rgba(168,85,247,.1);border:1px solid #a855f7;color:#a855f7;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+        .metric-btn{flex:1;min-height:44px;padding:10px;background:rgba(168,85,247,.08);border:0.5px solid rgba(168,85,247,.4);color:#a855f7;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
         .metric-btn:hover{background:rgba(168,85,247,.2);transform:translateY(-1px)}
         .metric-btn.done{background:#a855f7;color:#000;border-color:#a855f7}
         .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:50}
@@ -62,21 +62,21 @@
         .modal-foot{padding:12px 16px;border-top:1px solid rgba(168,85,247,.2);flex-shrink:0}
         .close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:#9ca3af;cursor:pointer}.close:hover{color:#fff}
         .fg{margin-bottom:14px}.fl{display:block;font-size:13px;font-weight:500;color:#d1d5db;margin-bottom:6px}
-        .fi,.ft{width:100%;padding:8px 12px;background:#000;border:1px solid #a855f7;border-radius:8px;color:#fff;font-size:14px;font-family:inherit}
+        .fi,.ft{width:100%;padding:8px 12px;background:#000;border:0.5px solid rgba(168,85,247,.5);border-radius:8px;color:#fff;font-size:14px;font-family:inherit}
         .fi:focus,.ft:focus{outline:none;border-color:#d8b4fe}.ft{resize:none;min-height:64px}
         .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-        .tbtn{padding:8px 12px;background:#000;border:1px solid #a855f7;border-radius:8px;color:#d1d5db;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;font-family:inherit;font-size:13px}
+        .tbtn{padding:8px 12px;background:#000;border:0.5px solid rgba(168,85,247,.4);border-radius:8px;color:#d1d5db;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;font-family:inherit;font-size:13px}
         .tbtn.on{background:#a855f7;color:#fff}
         .form-acts{display:flex;gap:8px;margin-top:14px}
-        .fbtn{flex:1;padding:12px 16px;border-radius:10px;border:1px solid #a855f7;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;font-family:inherit;min-height:48px}
+        .fbtn{flex:1;padding:12px 16px;border-radius:10px;border:0.5px solid rgba(168,85,247,.5);cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;font-family:inherit;min-height:48px}
         .fbtn-c{background:#000;color:#d1d5db;border-color:#4b5563}.fbtn-c:hover{background:#1a1a1a;border-color:#6b7280}
         .fbtn-s{background:#a855f7;color:#fff;border-color:#a855f7}.fbtn-s:hover{background:#9333ea;transform:translateY(-1px);box-shadow:0 4px 12px rgba(168,85,247,.3)}.fbtn-s:disabled{opacity:.5;cursor:not-allowed;transform:none}
         .fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:#a855f7;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(168,85,247,.3);transition:background .2s;z-index:40}
         .fab:hover{background:#9333ea}
-        .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;color:#6b7280;background:rgba(168,85,247,.03);border-radius:12px;border:1px dashed rgba(168,85,247,.2)}
+        .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;color:#6b7280;background:rgba(168,85,247,.02);border-radius:12px;border:0.5px dashed rgba(168,85,247,.25)}
         .empty-state svg{width:40px;height:40px;margin-bottom:12px;opacity:.5}
         .empty-state p{font-size:13px;font-weight:500}
-        .coach-section{background:#0a0a0a;border:1px solid #a855f7;border-radius:12px;overflow:hidden}
+        .coach-section{background:#0a0a0a;border:0.5px solid rgba(168,85,247,.5);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.2)}
         .coach-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid rgba(168,85,247,.2);background:rgba(168,85,247,.03)}
         .coach-label{font-size:15px;font-weight:600;color:#fff;display:flex;align-items:center;gap:8px}
         .coach-label svg{color:#a855f7}
@@ -93,12 +93,12 @@
         .coach-msg.motivate .coach-tag{color:#fbbf24}
         .coach-msg.advice .coach-tag{color:#4ade80}
         .coach-input-row{display:flex;gap:10px;padding:14px 16px;border-top:1px solid rgba(168,85,247,.2);background:rgba(168,85,247,.02)}
-        .coach-input{flex:1;padding:12px 14px;background:#000;border:1px solid #a855f7;border-radius:10px;color:#fff;font-size:14px;font-family:inherit;transition:all .2s}
+        .coach-input{flex:1;padding:12px 14px;background:#000;border:0.5px solid rgba(168,85,247,.5);border-radius:10px;color:#fff;font-size:14px;font-family:inherit;transition:all .2s}
         .coach-input:focus{outline:none;border-color:#d8b4fe;box-shadow:0 0 0 3px rgba(168,85,247,.1)}
         .coach-send{min-width:48px;min-height:48px;display:flex;align-items:center;justify-content:center;background:#a855f7;border:none;border-radius:10px;color:#fff;cursor:pointer;transition:all .2s}
         .coach-send:hover{background:#9333ea;transform:scale(1.05)}
         .coach-quick{display:flex;gap:8px;padding:12px 16px;flex-wrap:wrap;border-bottom:1px solid rgba(168,85,247,.1)}
-        .coach-quick-btn{padding:6px 12px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.3);color:#d8b4fe;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;text-transform:uppercase;letter-spacing:.5px}
+        .coach-quick-btn{padding:6px 12px;background:rgba(168,85,247,.06);border:0.5px solid rgba(168,85,247,.3);color:#d8b4fe;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;text-transform:uppercase;letter-spacing:.5px}
         .coach-quick-btn:hover{background:rgba(168,85,247,.15);border-color:#a855f7;transform:translateY(-1px)}
         .feedback-banner{position:fixed;top:70px;left:16px;right:16px;max-width:416px;margin:0 auto;z-index:35;background:rgba(127,29,29,.4);border:2px solid #ef4444;border-radius:8px;padding:12px 16px;display:none;cursor:pointer;animation:pulse 2s infinite;box-shadow:0 4px 12px rgba(239,68,68,.3)}
         .feedback-banner.show{display:flex;align-items:center;gap:10px}
@@ -109,7 +109,7 @@
         .plugin-info{flex:1}
         .plugin-name{font-size:14px;font-weight:500;color:#fff;margin-bottom:2px}
         .plugin-desc{font-size:11px;color:#6b7280}
-        .toggle-switch{position:relative;width:48px;height:26px;background:#1f1f1f;border:1px solid #a855f7;border-radius:13px;cursor:pointer;transition:background .2s}
+        .toggle-switch{position:relative;width:48px;height:26px;background:#1f1f1f;border:0.5px solid rgba(168,85,247,.5);border-radius:13px;cursor:pointer;transition:background .2s}
         .toggle-switch.on{background:#a855f7}
         .toggle-knob{position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .2s}
         .toggle-switch.on .toggle-knob{left:24px}
@@ -178,9 +178,6 @@
                             <svg viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             <p>No tasks for today</p>
                         </div>
-                    </div>
-                    <div style="margin-top:16px">
-                        <button class="fbtn fbtn-s" onclick="addTask()">Add Task</button>
                     </div>
                 </div>
             </section>
