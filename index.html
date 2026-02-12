@@ -117,6 +117,11 @@
         .view-container{display:none;animation:fadeIn .2s ease-out}
         .view-container.active{display:block}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        .task-done{opacity:.5}
+        .task-done .event-title{text-decoration:line-through;color:#6b7280}
+        .task-status{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:4px;display:inline-block;margin-top:4px}
+        .task-status.completed{color:#22c55e;background:rgba(34,197,94,.1)}
+        .task-status.active{color:#a855f7;background:rgba(168,85,247,.1)}
     </style>
 </head>
 <body>
@@ -207,10 +212,11 @@
                     </div>
                     <div class="coach-log" id="coachLog"></div>
                     <div class="coach-quick">
+                        <button class="coach-quick-btn" onclick="coachCommand('review progress')">Progress</button>
+                        <button class="coach-quick-btn" onclick="coachCommand('recommend')">Recommend</button>
                         <button class="coach-quick-btn" onclick="coachCommand('motivate me')">Motivate</button>
                         <button class="coach-quick-btn" onclick="coachCommand('sleep hygiene')">Sleep</button>
                         <button class="coach-quick-btn" onclick="coachCommand('work density')">Work</button>
-                        <button class="coach-quick-btn" onclick="coachCommand('review metrics')">Review</button>
                     </div>
                     <div class="coach-input-row">
                         <input type="text" class="coach-input" id="coachInput" placeholder="Command the Coach...">
@@ -248,6 +254,7 @@
                 <form id="eventForm">
                     <div class="fg"><label class="fl">Title *</label><input class="fi" id="eventTitle" placeholder="Enter title" required></div>
                     <div class="fg"><label class="fl">Description</label><textarea class="ft" id="eventDesc" placeholder="Optional"></textarea></div>
+                    <div class="fg"><label class="fl">Date</label><input type="date" class="fi" id="eventDate"></div>
                     <div class="fg"><label class="fl">Time</label><input type="time" class="fi" id="eventTime"></div>
                     <div class="fg"><label class="fl">Type</label>
                         <div class="type-grid">
@@ -469,8 +476,6 @@
         }
 
         function updateDateDisplay() {
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('selectedDate').textContent = selectedDate.toLocaleDateString('en-US', options);
             document.getElementById('eventsDate').textContent = selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         }
 
@@ -507,15 +512,25 @@
 
         function openAddEvent() {
             document.getElementById('addModal').classList.add('open');
+            // Pre-fill date picker with selected date
+            const year = selectedDate.getFullYear();
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            document.getElementById('eventDate').value = `${year}-${month}-${day}`;
             document.getElementById('eventTitle').focus();
         }
 
         function closeAll() {
             document.querySelectorAll('.overlay').forEach(o => o.classList.remove('open'));
-            document.getElementById('eventForm').reset();
+            const ef = document.getElementById('eventForm');
+            if (ef) ef.reset();
+            const tf = document.getElementById('taskForm');
+            if (tf) tf.reset();
             selectedEventType = 'onetime';
-            document.querySelectorAll('.tbtn').forEach(b => b.classList.remove('on'));
-            document.querySelector('.tbtn[data-type="onetime"]').classList.add('on');
+            const allTbtn = document.querySelectorAll('.tbtn');
+            allTbtn.forEach(b => b.classList.remove('on'));
+            const defaultBtn = document.querySelector('.tbtn[data-type="onetime"]');
+            if (defaultBtn) defaultBtn.classList.add('on');
         }
 
         function pickEventType(btn) {
@@ -528,13 +543,22 @@
             const title = document.getElementById('eventTitle').value.trim();
             if (!title) return;
 
+            // Get date from date picker or use selected date
+            const eventDateInput = document.getElementById('eventDate').value;
+            let eventDate;
+            if (eventDateInput) {
+                eventDate = eventDateInput; // Already in YYYY-MM-DD format
+            } else {
+                eventDate = formatDateKey(selectedDate);
+            }
+
             const event = {
                 id: Date.now().toString(),
                 title,
                 description: document.getElementById('eventDesc').value.trim(),
                 time: document.getElementById('eventTime').value,
                 type: selectedEventType,
-                date: formatDateKey(selectedDate)
+                date: eventDate
             };
 
             events.push(event);
@@ -729,7 +753,13 @@
         // Tasks Functions
         function renderTasks() {
             const container = document.getElementById('tasksList');
-            const todayTasks = tasks.filter(task => task.date === formatDateKey(new Date()));
+            const today = formatDateKey(new Date());
+            const todayTasks = tasks.filter(task => {
+                // Filter tasks for today that haven't been skipped
+                if (task.date !== today) return false;
+                if (task.skippedDates && task.skippedDates.includes(today)) return false;
+                return true;
+            });
             
             if (todayTasks.length === 0) {
                 container.innerHTML = `
@@ -742,14 +772,23 @@
             }
             
             container.innerHTML = todayTasks.map(task => `
-                <div class="event-item">
+                <div class="event-item ${task.completed ? 'task-done' : ''}">
                     <div class="event-info">
-                        <div class="event-title">${task.completed ? '<s>' + task.title + '</s>' : task.title}</div>
+                        <div class="event-title">${task.title}</div>
                         ${task.description ? `<div class="event-type">${task.description}</div>` : ''}
+                        <span class="task-status ${task.completed ? 'completed' : 'active'}">${task.completed ? 'Completed' : 'Active'}</span>
                     </div>
-                    <button class="del-btn" style="background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#22c55e" onclick="toggleTask('${task.id}')" onmouseover="this.style.background='rgba(34,197,94,.2)';this.style.borderColor='#22c55e'" onmouseout="this.style.background='rgba(34,197,94,.1)';this.style.borderColor='rgba(34,197,94,.3)'">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">${task.completed ? '<path d="M3 12h18" stroke="currentColor" stroke-width="2"/>' : '<path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'}</svg>
-                    </button>
+                    <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+                        <button class="del-btn" style="background:${task.completed ? 'rgba(34,197,94,.15)' : 'rgba(34,197,94,.08)'};border-color:${task.completed ? '#22c55e' : 'rgba(34,197,94,.3)'};color:#22c55e" onclick="toggleTask('${task.id}')" title="${task.completed ? 'Undo' : 'Complete'}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">${task.completed ? '<path d="M3 12h18" stroke="currentColor" stroke-width="2"/>' : '<path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'}</svg>
+                        </button>
+                        <button class="del-btn" style="background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3);color:#f59e0b" onclick="skipTask('${task.id}')" title="Skip today">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 17l5-5-5-5M6 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                        <button class="del-btn" onclick="deleteTask('${task.id}')" title="Delete">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2"/></svg>
+                        </button>
+                    </div>
                 </div>
             `).join('');
         }
@@ -786,6 +825,28 @@
             const task = tasks.find(t => t.id === taskId);
             if (task) {
                 task.completed = !task.completed;
+                saveData();
+                renderTasks();
+            }
+        }
+
+        function skipTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                // Mark as skipped for today by setting a skip date
+                if (!task.skippedDates) task.skippedDates = [];
+                const today = formatDateKey(new Date());
+                if (!task.skippedDates.includes(today)) {
+                    task.skippedDates.push(today);
+                }
+                saveData();
+                renderTasks();
+            }
+        }
+
+        function deleteTask(taskId) {
+            if (confirm('Delete this task permanently?')) {
+                tasks = tasks.filter(t => t.id !== taskId);
                 saveData();
                 renderTasks();
             }
@@ -951,7 +1012,39 @@
             coachCommand(cmd);
         }
 
+        // ---- PROGRESS AWARENESS ----
+        function getProgressSummary() {
+            const today = formatDateKey(new Date());
+            const todayTasks = tasks.filter(t => t.date === today);
+            const activeTasks = todayTasks.filter(t => !t.skippedDates || !t.skippedDates.includes(today));
+            const completedTasks = activeTasks.filter(t => t.completed);
+            const skippedTasks = todayTasks.filter(t => t.skippedDates && t.skippedDates.includes(today));
+            const todayEvents = events.filter(e => e.date === today);
+            const waterPct = Math.round((metrics.water.current / metrics.water.target) * 100);
+
+            return {
+                today,
+                tasks: { total: todayTasks.length, active: activeTasks.length, completed: completedTasks.length, skipped: skippedTasks.length, items: activeTasks },
+                events: { total: todayEvents.length, items: todayEvents },
+                water: { current: metrics.water.current, target: metrics.water.target, pct: waterPct },
+                sleep: { hours: metrics.sleep.hours },
+                exercise: { done: metrics.exercise.done }
+            };
+        }
+
         function processCoachCommand(cmd) {
+            // PROGRESS REVIEW
+            if (cmd.includes('progress') || cmd.includes('how am i') || cmd.includes('status') || cmd.includes('check')) {
+                runProgressReview();
+                return;
+            }
+
+            // RECOMMEND
+            if (cmd.includes('recommend') || cmd.includes('suggest') || cmd.includes('what should') || cmd.includes('improve') || cmd.includes('next step') || cmd.includes('more reps') || cmd.includes('level up')) {
+                runRecommendations();
+                return;
+            }
+
             // MOTIVATE
             if (cmd.includes('motivat') || cmd.includes('inspire') || cmd.includes('story') || cmd.includes('push me') || cmd.includes('fire me up')) {
                 const story = rand(MOTIVATIONAL_STORIES);
@@ -974,56 +1067,142 @@
                 }
             }
 
-            // REVIEW METRICS
-            if (cmd.includes('review') || cmd.includes('metric') || cmd.includes('check') || cmd.includes('status') || cmd.includes('how am i')) {
-                runMetricReview();
+            // REVIEW METRICS (legacy alias)
+            if (cmd.includes('review') || cmd.includes('metric')) {
+                runProgressReview();
                 return;
             }
 
             // GENERIC HARSH RESPONSE
+            const p = getProgressSummary();
             const harshResponses = [
-                `You typed "${esc(cmd)}" like I\'m your therapist. I\'m not. I\'m the voice that tells you what you already know but refuse to act on. Water: ${metrics.water.current}ml. Sleep: ${metrics.sleep.hours || 'NOT LOGGED'}. Exercise: ${metrics.exercise.done ? 'Done' : 'NOT DONE'}. Fix what\'s broken. Now.`,
-                `I don\'t understand "${esc(cmd)}" and I don\'t care. Here\'s what I understand: you have ${events.filter(e=>e.date===formatDateKey(new Date())).length} events today. Your water is at ${metrics.water.current}ml. Stop typing. Start executing.`,
-                `"${esc(cmd)}"? That\'s not a command I respect. Try: "motivate me", "sleep hygiene", "work density", "review metrics". Or better yet — close this app and go do the work you\'re avoiding.`,
-                `Every second you spend here chatting is a second not spent on your schedule. ${metrics.exercise.done ? 'At least you exercised.' : 'You haven\'t even exercised today.'} ${metrics.water.current < 1000 ? 'And you\'re dehydrated.' : ''} Move.`
+                `You typed "${esc(cmd)}" like I\'m your therapist. I\'m not. Tasks: ${p.tasks.completed}/${p.tasks.active} done. Water: ${p.water.current}ml. Sleep: ${p.sleep.hours || 'NOT LOGGED'}. Exercise: ${p.exercise.done ? 'Done' : 'NOT DONE'}. Fix what\'s broken. Now.`,
+                `I don\'t understand "${esc(cmd)}". You have ${p.tasks.active} tasks and ${p.events.total} events today. ${p.tasks.completed} tasks completed. Stop typing. Start executing.`,
+                `"${esc(cmd)}"? Try: "progress", "recommend", "motivate me", "sleep hygiene", "work density". Or better yet — close this app and do the work you\'re avoiding.`,
+                `Every second here is a second not on your schedule. ${p.tasks.active > 0 && p.tasks.completed === 0 ? 'You haven\'t completed a single task today.' : ''} ${p.exercise.done ? 'At least you exercised.' : 'You haven\'t even exercised.'} ${p.water.pct < 50 ? 'And you\'re dehydrated.' : ''} Move.`
             ];
             addCoachMessage(rand(harshResponses), 'harsh');
         }
 
-        function runMetricReview() {
-            const waterPct = Math.round((metrics.water.current / metrics.water.target) * 100);
-            const sleepH = metrics.sleep.hours;
-            const exerciseDone = metrics.exercise.done;
-            const todayEvents = events.filter(e => e.date === formatDateKey(new Date()));
+        function runProgressReview() {
+            const p = getProgressSummary();
             let score = 0;
             let lines = [];
 
-            // Water assessment
-            if (waterPct >= 100) { score++; lines.push(`<span style="color:#4ade80">WATER: ${metrics.water.current}ml — Target hit. Adequate. Don\'t stop.</span>`); }
-            else if (waterPct >= 50) { lines.push(`<span style="color:#fbbf24">WATER: ${metrics.water.current}ml (${waterPct}%) — You\'re halfway. Your brain is already suffering. Drink. Now.</span>`); }
-            else { lines.push(`<span style="color:#f87171">WATER: ${metrics.water.current}ml (${waterPct}%) — Pathetic. You\'re running on fumes. Every cell in your body is underperforming because you can\'t be bothered to drink water. Fix this immediately.</span>`); }
+            // TASK assessment
+            if (p.tasks.active === 0) {
+                lines.push(`<span style="color:#fbbf24">TASKS: No tasks set for today. You\'re flying blind. Add tasks or you\'re just reacting to life instead of directing it.</span>`);
+            } else {
+                const taskPct = Math.round((p.tasks.completed / p.tasks.active) * 100);
+                if (taskPct === 100) {
+                    score += 1.5;
+                    lines.push(`<span style="color:#4ade80">TASKS: ${p.tasks.completed}/${p.tasks.active} — ALL COMPLETE. Outstanding execution. This is what discipline looks like.</span>`);
+                } else if (taskPct >= 50) {
+                    score += 0.5;
+                    lines.push(`<span style="color:#fbbf24">TASKS: ${p.tasks.completed}/${p.tasks.active} done (${taskPct}%). ${p.tasks.active - p.tasks.completed} remaining. You\'re halfway. Finish what you started. No half-measures.</span>`);
+                } else {
+                    lines.push(`<span style="color:#f87171">TASKS: ${p.tasks.completed}/${p.tasks.active} done (${taskPct}%). You\'re barely moving. ${p.tasks.skipped > 0 ? 'You skipped ' + p.tasks.skipped + ' task' + (p.tasks.skipped > 1 ? 's' : '') + '. Skipping is quitting with extra steps.' : 'Start executing.'}</span>`);
+                }
+            }
 
-            // Sleep assessment
-            if (sleepH === null) { lines.push(`<span style="color:#f87171">SLEEP: NOT LOGGED — You didn\'t even track it. If you can\'t measure it, you can\'t manage it. Log your sleep. Now.</span>`); }
-            else if (sleepH >= 7 && sleepH <= 9) { score++; lines.push(`<span style="color:#4ade80">SLEEP: ${sleepH}h — Acceptable range. Quality matters more than quantity. Were you in bed by 10 PM?</span>`); }
-            else if (sleepH >= 5) { lines.push(`<span style="color:#fbbf24">SLEEP: ${sleepH}h — Suboptimal. Under 7 hours degrades cognitive performance by 30%. You\'re voluntarily making yourself dumber.</span>`); }
-            else { lines.push(`<span style="color:#f87171">SLEEP: ${sleepH}h — Dangerous. Chronic sleep deprivation destroys testosterone, immune function, and decision-making. This isn\'t hardcore — it\'s self-destruction. Fix your sleep protocol.</span>`); }
+            // WATER assessment
+            if (p.water.pct >= 100) { score++; lines.push(`<span style="color:#4ade80">WATER: ${p.water.current}ml — Target hit. Your cells are functioning. Don\'t stop.</span>`); }
+            else if (p.water.pct >= 50) { score += 0.5; lines.push(`<span style="color:#fbbf24">WATER: ${p.water.current}ml (${p.water.pct}%) — Halfway. Your brain is already degrading. Drink. Now.</span>`); }
+            else { lines.push(`<span style="color:#f87171">WATER: ${p.water.current}ml (${p.water.pct}%) — Pathetic. Every cell underperforming because you can\'t be bothered to drink water.</span>`); }
 
-            // Exercise assessment
-            if (exerciseDone) { score++; lines.push(`<span style="color:#4ade80">EXERCISE: Done — Good. The bare minimum of physical discipline. Was it hard enough? If you weren\'t uncomfortable, it didn\'t count.</span>`); }
-            else { lines.push(`<span style="color:#f87171">EXERCISE: NOT DONE — Your body is a weapon. You\'re letting it rust. Every day without training is a day you chose weakness. Get moving.</span>`); }
+            // SLEEP assessment
+            if (p.sleep.hours === null) { lines.push(`<span style="color:#f87171">SLEEP: NOT LOGGED — If you can\'t measure it, you can\'t manage it. Log your sleep.</span>`); }
+            else if (p.sleep.hours >= 7 && p.sleep.hours <= 9) { score++; lines.push(`<span style="color:#4ade80">SLEEP: ${p.sleep.hours}h — Acceptable range. Quality matters. Were you in bed by 10 PM?</span>`); }
+            else if (p.sleep.hours >= 5) { score += 0.5; lines.push(`<span style="color:#fbbf24">SLEEP: ${p.sleep.hours}h — Under 7h degrades cognition by 30%. You\'re voluntarily making yourself dumber.</span>`); }
+            else { lines.push(`<span style="color:#f87171">SLEEP: ${p.sleep.hours}h — Dangerous. This destroys testosterone, immunity, and decision-making.</span>`); }
 
-            // Events assessment
-            if (todayEvents.length === 0) { lines.push(`<span style="color:#f87171">SCHEDULE: Zero events today. An empty schedule isn\'t freedom — it\'s aimlessness. Build your day or your day builds you.</span>`); }
-            else { score += 0.5; lines.push(`<span style="color:#d8b4fe">SCHEDULE: ${todayEvents.length} event${todayEvents.length>1?'s':''} planned. Execution is everything. A plan means nothing if you don\'t follow through.</span>`); }
+            // EXERCISE assessment
+            if (p.exercise.done) { score++; lines.push(`<span style="color:#4ade80">EXERCISE: Done — Good. The bare minimum. Was it hard enough?</span>`); }
+            else { lines.push(`<span style="color:#f87171">EXERCISE: NOT DONE — Every day without training is choosing weakness.</span>`); }
+
+            // SCHEDULE assessment
+            if (p.events.total === 0) { lines.push(`<span style="color:#f87171">SCHEDULE: Zero events. An empty schedule isn\'t freedom — it\'s aimlessness.</span>`); }
+            else { score += 0.5; lines.push(`<span style="color:#d8b4fe">SCHEDULE: ${p.events.total} event${p.events.total > 1 ? 's' : ''} planned. Execution is everything.</span>`); }
 
             // Overall verdict
-            let verdict;
-            if (score >= 3) verdict = `<div style="margin-top:10px;padding:8px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);border-radius:6px"><strong style="color:#4ade80">VERDICT:</strong> Acceptable performance. Don\'t let this make you complacent. Complacency is where discipline goes to die. Raise the standard tomorrow.</div>`;
-            else if (score >= 1.5) verdict = `<div style="margin-top:10px;padding:8px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);border-radius:6px"><strong style="color:#fbbf24">VERDICT:</strong> Mediocre. You\'re doing enough to feel good about yourself but not enough to actually improve. That\'s the most dangerous place to be. Push harder.</div>`;
-            else verdict = `<div style="margin-top:10px;padding:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:6px"><strong style="color:#f87171">VERDICT:</strong> Failure across the board. You have the tools. You have the time. You\'re choosing not to use them. That\'s not a limitation — it\'s a decision. Make a different one. Now.</div>`;
+            const maxScore = 5;
+            const pct = Math.round((score / maxScore) * 100);
+            let verdict, vtype;
+            if (pct >= 70) {
+                verdict = `<div style="margin-top:10px;padding:8px;background:rgba(34,197,94,.1);border:0.5px solid rgba(34,197,94,.3);border-radius:6px"><strong style="color:#4ade80">SCORE: ${pct}% — SOLID</strong><br>Don\'t get complacent. Raise the standard tomorrow. Type "recommend" for next-level targets.</div>`;
+                vtype = 'advice';
+            } else if (pct >= 40) {
+                verdict = `<div style="margin-top:10px;padding:8px;background:rgba(251,191,36,.1);border:0.5px solid rgba(251,191,36,.3);border-radius:6px"><strong style="color:#fbbf24">SCORE: ${pct}% — MEDIOCRE</strong><br>You\'re doing enough to feel good, not enough to improve. That\'s the most dangerous place. Type "recommend" for a push.</div>`;
+                vtype = 'motivate';
+            } else {
+                verdict = `<div style="margin-top:10px;padding:8px;background:rgba(239,68,68,.1);border:0.5px solid rgba(239,68,68,.3);border-radius:6px"><strong style="color:#f87171">SCORE: ${pct}% — FAILING</strong><br>You have the tools. You have the time. You\'re choosing not to use them. That\'s a decision. Make a different one.</div>`;
+                vtype = 'harsh';
+            }
 
-            addCoachMessage(`<strong>METRIC REVIEW</strong><br><br>${lines.join('<br><br>')}${verdict}`, score >= 3 ? 'advice' : score >= 1.5 ? 'motivate' : 'harsh');
+            addCoachMessage(`<strong>PROGRESS REVIEW</strong><br><br>${lines.join('<br><br>')}${verdict}`, vtype);
+        }
+
+        function runRecommendations() {
+            const p = getProgressSummary();
+            let recs = [];
+
+            // Task-based recommendations
+            if (p.tasks.active === 0) {
+                recs.push({cat: 'TASKS', text: 'You have zero tasks today. Add at least 3 concrete tasks right now. Not goals — actions. "Do 50 pushups" not "exercise more".'});
+            } else if (p.tasks.completed === p.tasks.active && p.tasks.active > 0) {
+                recs.push({cat: 'TASKS', text: `All ${p.tasks.completed} tasks complete. Time to raise the bar. Add 2 more challenging tasks. If it\'s not uncomfortable, you\'re not growing.`});
+            } else if (p.tasks.completed === 0 && p.tasks.active > 0) {
+                recs.push({cat: 'TASKS', text: `Zero tasks completed out of ${p.tasks.active}. Pick the easiest one. Do it in the next 5 minutes. Momentum builds from a single action.`});
+            }
+            if (p.tasks.skipped > 0) {
+                recs.push({cat: 'DISCIPLINE', text: `You skipped ${p.tasks.skipped} task${p.tasks.skipped > 1 ? 's' : ''}. Tomorrow, do the skipped ones FIRST. Avoidance compounds. Attack what you fear.`});
+            }
+
+            // Exercise recommendations
+            if (!p.exercise.done) {
+                const hour = new Date().getHours();
+                if (hour < 12) {
+                    recs.push({cat: 'EXERCISE', text: 'Morning is prime time for training. Do 30 min now: 3 sets of pushups, squats, and planks to failure. Cold shower after. No negotiation.'});
+                } else if (hour < 17) {
+                    recs.push({cat: 'EXERCISE', text: 'Afternoon slot. 20 min HIIT: burpees, mountain climbers, jump squats. 40 sec on, 20 sec rest. 4 rounds. Start NOW.'});
+                } else {
+                    recs.push({cat: 'EXERCISE', text: 'Day is almost over and you haven\'t moved. Even 15 min counts: 100 pushups, 100 bodyweight squats, 2 min plank. Do it before bed or carry the shame to tomorrow.'});
+                }
+            } else {
+                recs.push({cat: 'EXERCISE+', text: 'You trained today — good. Tomorrow, add more volume: extra set on each exercise, 10% more weight, or 5 more reps per set. Progressive overload is the only path to growth.'});
+            }
+
+            // Water recommendations
+            if (p.water.pct < 50) {
+                recs.push({cat: 'HYDRATION', text: `You\'re at ${p.water.current}ml. Drink 500ml right now. Set an alarm for every hour. Your cognitive performance is tanked until you fix this.`});
+            } else if (p.water.pct < 100) {
+                const remaining = p.water.target - p.water.current;
+                recs.push({cat: 'HYDRATION', text: `${remaining}ml to go. That\'s ${Math.ceil(remaining / 250)} glasses. Space them across the remaining hours. Finish strong.`});
+            }
+
+            // Sleep recommendations
+            if (p.sleep.hours !== null && p.sleep.hours < 7) {
+                recs.push({cat: 'SLEEP', text: `${p.sleep.hours}h is not enough. Tonight: screens off by 9 PM, room at 18°C, in bed by 10 PM. Target 7.5h minimum. This is non-negotiable — everything else degrades without sleep.`});
+            } else if (p.sleep.hours === null) {
+                recs.push({cat: 'SLEEP', text: 'Log your sleep. You can\'t improve what you don\'t measure. Go to Metrics, enter last night\'s hours. Do it now, before you forget.'});
+            }
+
+            // Schedule recommendations
+            if (p.events.total === 0) {
+                recs.push({cat: 'SCHEDULE', text: 'Empty schedule. Block out tomorrow: deep work 6-8 AM, exercise 8-9 AM, focused work 10-12. Structure creates freedom. Add these events now.'});
+            }
+
+            // Format output
+            let html = '<strong>RECOMMENDATIONS</strong><br><br>';
+            recs.forEach(r => {
+                html += `<div style="margin-bottom:10px;padding:8px 10px;background:rgba(168,85,247,.05);border-left:2px solid #a855f7;border-radius:0 6px 6px 0"><strong style="color:#a855f7;font-size:10px;text-transform:uppercase;letter-spacing:.5px">${r.cat}</strong><br><span style="font-size:13px">${r.text}</span></div>`;
+            });
+
+            if (recs.length === 0) {
+                html += '<div style="padding:8px;background:rgba(34,197,94,.1);border:0.5px solid rgba(34,197,94,.3);border-radius:6px"><strong style="color:#4ade80">You\'re on track.</strong> All metrics green. Maintain discipline. The moment you think you\'ve made it is the moment you start slipping.</div>';
+            }
+
+            addCoachMessage(html, 'advice');
         }
 
         // 4-HOUR AUTO FEEDBACK
@@ -1035,21 +1214,23 @@
 
             if (currentSlot !== undefined && lastFeedbackHour !== currentSlot) {
                 lastFeedbackHour = currentSlot;
-                const waterPct = Math.round((metrics.water.current / metrics.water.target) * 100);
-                const failingWater = waterPct < 50;
-                const failingSleep = metrics.sleep.hours !== null && metrics.sleep.hours < 6;
-                const failingExercise = !metrics.exercise.done && hour >= 16;
+                const p = getProgressSummary();
+                const failingWater = p.water.pct < 50;
+                const failingSleep = p.sleep.hours !== null && p.sleep.hours < 6;
+                const failingExercise = !p.exercise.done && hour >= 16;
+                const failingTasks = p.tasks.active > 0 && p.tasks.completed === 0 && hour >= 12;
 
-                if (failingWater || failingSleep || failingExercise) {
+                if (failingWater || failingSleep || failingExercise || failingTasks) {
                     let msg = `<strong>${currentSlot}:00 CHECK-IN</strong><br><br>`;
-                    if (failingWater) msg += `Water at ${waterPct}%. By ${currentSlot}:00 you should be at ${Math.round((currentSlot/20)*100)}%. You\'re behind. Drink.<br><br>`;
-                    if (failingSleep) msg += `${metrics.sleep.hours}h sleep logged. You\'re impaired. Compensate with discipline, not caffeine.<br><br>`;
-                    if (failingExercise) msg += `It\'s ${currentSlot}:00 and you still haven\'t exercised. The day is running out. Your body doesn\'t care about your excuses.<br><br>`;
-                    msg += `<em>This is your ${feedbackHours.indexOf(currentSlot) + 1}${['st','nd','rd','th'][feedbackHours.indexOf(currentSlot)]} check-in of the day. I\'m watching.</em>`;
+                    if (failingTasks) msg += `Tasks: ${p.tasks.completed}/${p.tasks.active} complete. It\'s ${currentSlot}:00 and you haven\'t finished a single task. You\'re wasting the day.<br><br>`;
+                    if (failingWater) msg += `Water at ${p.water.pct}%. By ${currentSlot}:00 you should be at ${Math.round((currentSlot/20)*100)}%. You\'re behind. Drink.<br><br>`;
+                    if (failingSleep) msg += `${p.sleep.hours}h sleep logged. You\'re impaired. Compensate with discipline, not caffeine.<br><br>`;
+                    if (failingExercise) msg += `It\'s ${currentSlot}:00 and you still haven\'t exercised. The day is running out.<br><br>`;
+                    msg += `<em>This is your ${feedbackHours.indexOf(currentSlot) + 1}${['st','nd','rd','th'][feedbackHours.indexOf(currentSlot)]} check-in. I\'m watching.</em>`;
                     addCoachMessage(msg, 'harsh');
 
                     const banner = document.getElementById('feedbackBanner');
-                    document.getElementById('feedbackBannerText').textContent = `${currentSlot}:00 — The Coach reviewed your metrics. You\'re failing.`;
+                    document.getElementById('feedbackBannerText').textContent = `${currentSlot}:00 — The Coach reviewed your progress. You\'re falling behind.`;
                     banner.classList.add('show');
                 }
             }
