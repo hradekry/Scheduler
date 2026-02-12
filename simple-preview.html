@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <title>Routine OS</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0a0a0a}::-webkit-scrollbar-thumb{background:#a855f7;border-radius:2px}
+        .header{background:#0a0a0a;border-bottom:1px solid #a855f7;padding:12px 16px;position:sticky;top:0;z-index:30}
+        .header-inner{display:flex;align-items:center;justify-content:space-between;max-width:448px;margin:0 auto}
+        .header-left{display:flex;align-items:center;gap:12px}
+        .header h1{font-size:18px;font-weight:600}.header .sub{font-size:13px;color:#9ca3af;margin-top:1px}
+        .icon-btn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:#a855f7;cursor:pointer;border-radius:6px;transition:background .2s}
+        .icon-btn:hover{background:rgba(168,85,247,.1)}
+        .stats-bar{background:#0a0a0a;border-bottom:1px solid rgba(168,85,247,.2);padding:8px 16px;display:none}
+        .stats-inner{max-width:448px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;font-size:12px}
+        .stats-left{display:flex;align-items:center;gap:8px}
+        .progress-track{width:96px;height:4px;background:#111;border-radius:2px;overflow:hidden}
+        .progress-fill{height:100%;background:#a855f7;border-radius:2px;transition:width .3s}
+        .stats-pct{color:#a855f7;font-weight:600}
+        .main{padding:16px;max-width:448px;margin:0 auto;padding-bottom:120px}
+        .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:55vh;text-align:center}
+        .empty svg{width:48px;height:48px;color:#4b5563;margin-bottom:16px}
+        .empty h2{font-size:18px;color:#d1d5db;margin-bottom:8px;font-weight:500}.empty p{font-size:14px;color:#6b7280}
+        .tl-item{border-left:1px solid #a855f7;padding-left:16px;padding-bottom:4px;position:relative;margin-bottom:16px}
+        .tl-item::before{content:'';position:absolute;width:8px;height:8px;background:#a855f7;border-radius:50%;left:-5px;top:8px}
+        .tl-item.done{opacity:.55}.tl-item.done::before{background:#22c55e}
+        .tl-item.skipped{opacity:.4}.tl-item.skipped::before{background:#ef4444}
+        .card{background:#0a0a0a;border:1px solid #a855f7;border-radius:8px;padding:14px}
+        .card.done-card{border-color:rgba(34,197,94,.4)}.card.skip-card{border-color:rgba(239,68,68,.4)}
+        .ev-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+        .ev-meta{display:flex;align-items:center;gap:8px;font-size:13px;color:#a855f7}
+        .ev-time{color:#d8b4fe;font-weight:500}
+        .ev-title{font-size:15px;font-weight:500;margin-bottom:3px}
+        .ev-title.struck{text-decoration:line-through;color:#6b7280}
+        .ev-desc{font-size:13px;color:#9ca3af}
+        .badge{display:inline-block;font-size:11px;background:rgba(168,85,247,.15);color:#d8b4fe;padding:3px 7px;border-radius:4px}
+        .badge-done{background:rgba(34,197,94,.15);color:#4ade80}.badge-skip{background:rgba(239,68,68,.15);color:#f87171}
+        .ev-actions{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+        .act-btns{display:flex;gap:8px}
+        .act-btn{min-height:36px;display:flex;align-items:center;gap:4px;padding:0 12px;font-size:12px;border-radius:6px;border:1px solid;cursor:pointer;transition:all .2s;background:#000;font-family:inherit}
+        .act-skip{border-color:rgba(239,68,68,.35);color:#f87171}.act-skip:hover{background:rgba(239,68,68,.1)}
+        .act-done{border-color:rgba(34,197,94,.35);color:#4ade80}.act-done:hover{background:rgba(34,197,94,.1)}
+        .del-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:#4b5563;cursor:pointer;border-radius:4px}.del-btn:hover{color:#ef4444}
+        .fab-group{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;align-items:center;gap:10px;z-index:40}
+        .fab-sm{width:44px;height:44px;border-radius:50%;background:#0a0a0a;border:1px solid #a855f7;color:#a855f7;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+        .fab-sm:hover{background:rgba(168,85,247,.1)}
+        .fab-lg{width:56px;height:56px;border-radius:50%;background:#a855f7;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(168,85,247,.3);transition:background .2s}
+        .fab-lg:hover{background:#9333ea}
+        .spartan-alert{position:fixed;top:100px;left:16px;z-index:40;display:none;align-items:center;gap:8px;padding:8px 14px;background:rgba(127,29,29,.25);border:1px solid rgba(239,68,68,.35);border-radius:8px;cursor:pointer;animation:pulse 2s infinite}
+        .spartan-alert span{font-size:12px;color:#fca5a5;font-weight:500}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+        .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:50}
+        .overlay.open{display:flex}
+        .modal{background:#0a0a0a;border-top:1px solid #a855f7;width:100%;max-width:448px;border-radius:12px 12px 0 0;max-height:85vh;display:flex;flex-direction:column}
+        .modal-head{padding:14px 16px;border-bottom:1px solid rgba(168,85,247,.2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+        .modal-head h2{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+        .modal-body{flex:1;overflow-y:auto;padding:16px}
+        .modal-foot{padding:12px 16px;border-top:1px solid rgba(168,85,247,.2);flex-shrink:0}
+        .close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:#9ca3af;cursor:pointer}.close:hover{color:#fff}
+        .fg{margin-bottom:14px}.fl{display:block;font-size:13px;font-weight:500;color:#d1d5db;margin-bottom:6px}
+        .fi,.ft{width:100%;padding:8px 12px;background:#000;border:1px solid #a855f7;border-radius:8px;color:#fff;font-size:14px;font-family:inherit}
+        .fi:focus,.ft:focus{outline:none;border-color:#d8b4fe}.ft{resize:none;min-height:64px}
+        .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+        .tbtn{padding:8px 12px;background:#000;border:1px solid #a855f7;border-radius:8px;color:#d1d5db;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;font-family:inherit;font-size:13px}
+        .tbtn.on{background:#a855f7;color:#fff}
+        .form-acts{display:flex;gap:8px;margin-top:14px}
+        .fbtn{flex:1;padding:8px 14px;border-radius:8px;border:1px solid #a855f7;cursor:pointer;font-size:14px;font-weight:500;transition:all .2s;font-family:inherit;min-height:44px}
+        .fbtn-c{background:#000;color:#d1d5db}.fbtn-c:hover{background:#111}
+        .fbtn-s{background:#a855f7;color:#fff}.fbtn-s:hover{background:#9333ea}.fbtn-s:disabled{opacity:.5;cursor:not-allowed}
+        .mood-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px}
+        .mood-btn{display:flex;flex-direction:column;align-items:center;padding:10px 4px;border-radius:8px;border:1px solid rgba(168,85,247,.2);background:#000;cursor:pointer;transition:all .2s;font-family:inherit}
+        .mood-btn.on{border-color:#a855f7;background:rgba(168,85,247,.12)}
+        .mood-btn .emoji{font-size:22px;margin-bottom:2px}.mood-btn .mlabel{font-size:10px;color:#6b7280}
+        .mood-btn.on .mlabel{color:#d8b4fe}
+        .fb-card{background:#000;border-left:2px solid #a855f7;border-radius:0 8px 8px 0;padding:14px;margin-bottom:10px}
+        .fb-card.penalty{border-color:#ef4444}.fb-card.stoic{border-color:#f97316}.fb-card.reminder{border-color:#eab308}
+        .fb-tag{display:flex;align-items:center;gap:4px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:6px;color:#a855f7}
+        .fb-card.penalty .fb-tag{color:#f87171}.fb-card.stoic .fb-tag{color:#fb923c}.fb-card.reminder .fb-tag{color:#facc15}
+        .fb-text{font-size:13px;color:#e5e7eb;line-height:1.5}
+        .penalty-box{margin-top:8px;padding:6px 10px;background:rgba(127,29,29,.15);border:1px solid rgba(239,68,68,.25);border-radius:6px;font-size:11px;color:#fca5a5}
+        .chat-area{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+        .chat-msg{max-width:85%;border-radius:8px;padding:10px 12px}
+        .msg-user{align-self:flex-end;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.3)}
+        .msg-coach{align-self:flex-start;background:#000;border-left:2px solid #a855f7}
+        .msg-coach .sender{font-size:9px;color:#a855f7;text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:3px}
+        .msg-text{font-size:13px;color:#e5e7eb;line-height:1.5}
+        .msg-time{font-size:9px;color:#4b5563;text-align:right;margin-top:4px}
+        .chat-input-row{padding:12px 16px;border-top:1px solid rgba(168,85,247,.2);display:flex;gap:8px;flex-shrink:0}
+        .chat-input{flex:1;padding:8px 12px;background:#000;border:1px solid #a855f7;border-radius:8px;color:#fff;font-size:13px;font-family:inherit;resize:none}
+        .chat-input:focus{outline:none;border-color:#d8b4fe}
+        .send-btn{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;background:#a855f7;border:none;border-radius:8px;color:#fff;cursor:pointer;transition:background .2s}
+        .send-btn:hover{background:#9333ea}.send-btn:disabled{opacity:.5;cursor:not-allowed}
+        .settings-panel{padding:12px 16px;border-bottom:1px solid rgba(168,85,247,.2);background:#050505;display:none}
+        .settings-panel.open{display:block}
+        .settings-panel p{font-size:11px;color:#6b7280;margin-bottom:8px}
+        .settings-row{display:flex;gap:8px}
+    </style>
+</head>
+<body>
+
+<header class="header"><div class="header-inner"><div class="header-left">
+    <button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    <div><h1>Today</h1><div class="sub" id="dateDisplay"></div></div>
+</div>
+<button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/></svg></button>
+</div></header>
+
+<div class="stats-bar" id="statsBar"><div class="stats-inner">
+    <div class="stats-left"><span id="statsText" style="color:#6b7280">0/0</span><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div><span class="stats-pct" id="statsPct">0%</span></div>
+    <span id="moodDisplay" style="color:#6b7280"></span>
+</div></div>
+
+<div class="spartan-alert" id="spartanAlert" onclick="openFeedback()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 7l4-4 4 4-4 4" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>The Spartan has words for you</span>
+</div>
+
+<main class="main"><div id="timeline"></div></main>
+
+<div class="fab-group">
+    <button class="fab-sm" onclick="openMood()" title="Log Mood"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="fab-sm" onclick="openChat()" title="Talk to The Spartan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 7l4-4 4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="fab-lg" onclick="openAddEvent()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2"/></svg></button>
+</div>
+
+<!-- ADD EVENT -->
+<div class="overlay" id="addModal"><div class="modal"><div class="modal-head"><h2>Add New Item</h2><button class="close" onclick="closeAll()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg></button></div>
+<div class="modal-body"><form id="eventForm">
+    <div class="fg"><label class="fl">Title *</label><input class="fi" id="fTitle" placeholder="Enter title" required></div>
+    <div class="fg"><label class="fl">Description</label><textarea class="ft" id="fDesc" placeholder="Optional"></textarea></div>
+    <div class="fg"><label class="fl">Time</label><input type="time" class="fi" id="fTime"></div>
+    <div class="fg"><label class="fl">Type</label><div class="type-grid">
+        <button type="button" class="tbtn on" data-t="onetime" onclick="pickType(this)">One-time</button>
+        <button type="button" class="tbtn" data-t="recurring" onclick="pickType(this)">Daily</button>
+    </div></div>
+    <div class="form-acts"><button type="button" class="fbtn fbtn-c" onclick="closeAll()">Cancel</button><button type="submit" class="fbtn fbtn-s">Add</button></div>
+</form></div></div></div>
+
+<!-- MOOD -->
+<div class="overlay" id="moodModal"><div class="modal"><div class="modal-head"><h2>How are you feeling?</h2><button class="close" onclick="closeAll()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg></button></div>
+<div class="modal-body">
+    <p style="font-size:12px;color:#6b7280;margin-bottom:12px">Be honest. The Spartan doesn't care about your comfort — but needs the data.</p>
+    <div class="mood-grid" id="moodGrid"></div>
+    <div class="fg"><label class="fl">Note (optional)</label><textarea class="ft" id="moodNote" placeholder="What's going on?" rows="2"></textarea></div>
+    <div class="form-acts"><button class="fbtn fbtn-c" onclick="closeAll()">Cancel</button><button class="fbtn fbtn-s" id="moodSubmit" onclick="submitMood()" disabled>Log Mood</button></div>
+</div></div></div>
+
+<!-- FEEDBACK -->
+<div class="overlay" id="feedbackModal"><div class="modal"><div class="modal-head"><h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 7l4-4 4 4-4 4" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Daily Debrief</h2><button class="close" onclick="closeAll()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg></button></div>
+<div class="modal-body" id="feedbackBody"></div>
+<div class="modal-foot"><button class="fbtn fbtn-s" style="width:100%" onclick="closeAll()">Acknowledged</button></div></div></div>
+
+<!-- CHAT -->
+<div class="overlay" id="chatModal"><div class="modal" style="height:90vh"><div class="modal-head"><h2><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14.5 17.5L3 6V3h3l11.5 11.5M13 7l4-4 4 4-4 4" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>The Spartan <span style="font-size:10px;color:#6b7280;font-weight:400;margin-left:4px" id="chatMode">Local Mode</span></h2>
+<div style="display:flex;gap:2px">
+    <button class="icon-btn" style="width:32px;height:32px" onclick="toggleSettings()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="2"/></svg></button>
+    <button class="icon-btn" style="width:32px;height:32px" onclick="clearChat()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2"/></svg></button>
+    <button class="close" onclick="closeAll()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg></button>
+</div></div>
+<div class="settings-panel" id="settingsPanel">
+    <p>Optional. Without an API key, The Spartan uses pre-built local responses. With one, a high-reasoning LLM powers the coach.</p>
+    <div class="settings-row"><input type="password" class="fi" id="apiKeyInput" placeholder="sk-..." style="font-size:12px"><button class="fbtn fbtn-s" style="flex:0;padding:0 14px;font-size:12px" onclick="saveApiKey()">Save</button></div>
+</div>
+<div class="chat-area" id="chatArea"></div>
+<div class="chat-input-row"><textarea class="chat-input" id="chatInput" placeholder="Speak. No excuses." rows="1"></textarea>
+<button class="send-btn" onclick="sendChat()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><line x1="22" y1="2" x2="11" y2="13" stroke="currentColor" stroke-width="2"/><polygon points="22 2 15 22 11 13 2 9 22 2" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+</div></div></div>
+
+<script>
+let events=[], completionLog={}, currentMood=null, chatHistory=[], selectedType='onetime', selectedMood=null;
+let apiKey=localStorage.getItem('ros-api-key')||'';
+
+const MOODS=[{v:'terrible',e:'💀',l:'Terrible'},{v:'bad',e:'😤',l:'Bad'},{v:'neutral',e:'😐',l:'Neutral'},{v:'good',e:'🔥',l:'Good'},{v:'great',e:'⚡',l:'Great'}];
+const PENALTIES=[
+    {task:'50 burpees. Now.',d:'10 min',i:'high'},
+    {task:'100 pushups. No breaks longer than 10 seconds.',d:'8 min',i:'high'},
+    {task:'2 minute cold shower. Full cold.',d:'2 min',i:'high'},
+    {task:'5 minute plank. Collapse = restart that minute.',d:'5 min',i:'high'},
+    {task:'200 jumping jacks. Count every one.',d:'8 min',i:'medium'},
+    {task:'Write 500 words on why you failed. No excuses — only analysis.',d:'15 min',i:'mental'},
+    {task:'Tomorrow starts at 5 AM. Non-negotiable. Set the alarm now.',d:'next day',i:'schedule'},
+];
+const STOICS=[
+    '"The impediment to action advances action. What stands in the way becomes the way." — Marcus Aurelius',
+    '"We suffer more in imagination than in reality." — Seneca',
+    '"You have power over your mind — not outside events." — Marcus Aurelius',
+    '"Waste no more time arguing about what a good man should be. Be one." — Marcus Aurelius',
+    '"Difficulties strengthen the mind, as labor does the body." — Seneca',
+    '"First say to yourself what you would be; then do what you have to do." — Epictetus',
+];
+const SYS_PROMPT='You are "The Spartan" — an extremely harsh, direct, zero-tolerance AI coach. Brutal honesty. Short, punchy sentences. You despise excuses. If someone skips a task, call it out HARD. You are PRACTICAL — optimize for maximum density of effort within real constraints. Assign penalty tasks when tasks are skipped. For bad moods, channel Stoic philosophy — acknowledge pain, demand action. Never soft. 2-4 sentences for feedback, slightly longer for chat.';
+
+function rand(a){return a[Math.floor(Math.random()*a.length)]}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmtTime(t){if(!t)return '';const[h,m]=t.split(':');const hr=+h;return `${hr%12||12}:${m} ${hr>=12?'PM':'AM'}`}
+function fmtNow(){const d=new Date();return `${d.getHours()%12||12}:${d.getMinutes().toString().padStart(2,'0')} ${d.getHours()>=12?'PM':'AM'}`}
+
+document.getElementById('dateDisplay').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+function getStats(){
+    let c=0,sk=0,p=0,skT=[];
+    events.forEach(e=>{const s=completionLog[e.id];if(s==='completed')c++;else if(s==='skipped'){sk++;skT.push(e)}else p++});
+    const t=events.length,r=t?Math.round(c/t*100):0;
+    return{total:t,completed:c,skipped:sk,pending:p,skippedTasks:skT,rate:r};
+}
+function renderStats(){
+    const s=getStats(),bar=document.getElementById('statsBar');
+    if(!s.total){bar.style.display='none';document.getElementById('spartanAlert').style.display='none';return}
+    bar.style.display='block';
+    document.getElementById('statsText').textContent=`${s.completed}/${s.total} done`;
+    document.getElementById('progressFill').style.width=s.rate+'%';
+    document.getElementById('statsPct').textContent=s.rate+'%';
+    document.getElementById('moodDisplay').textContent=currentMood?`Mood: ${currentMood}`:'';
+    document.getElementById('spartanAlert').style.display=s.skipped>0?'flex':'none';
+}
+function renderTimeline(){
+    const el=document.getElementById('timeline');
+    if(!events.length){el.innerHTML='<div class="empty"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><polyline points="12 6 12 12 16 14" stroke="currentColor" stroke-width="2"/></svg><h2>No events yet</h2><p>Tap the + button to add your first event or task</p></div>';renderStats();return}
+    const sorted=[...events].sort((a,b)=>{const sa=completionLog[a.id]||'pending',sb=completionLog[b.id]||'pending',o={pending:0,skipped:1,completed:2};if(o[sa]!==o[sb])return o[sa]-o[sb];return(a.time||'').localeCompare(b.time||'')});
+    el.innerHTML=sorted.map(e=>{
+        const st=completionLog[e.id]||'pending';
+        return`<div class="tl-item ${st==='completed'?'done':st==='skipped'?'skipped':''}"><div class="card ${st==='completed'?'done-card':st==='skipped'?'skip-card':''}">
+        <div class="ev-head"><div class="ev-meta">${e.time?`<span class="ev-time">${fmtTime(e.time)}</span>`:''}${st==='completed'?'<span class="badge badge-done">Done</span>':''}${st==='skipped'?'<span class="badge badge-skip">Skipped</span>':''}</div>
+        <button class="del-btn" onclick="delEvent('${e.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2"/></svg></button></div>
+        <div class="ev-title ${st==='completed'?'struck':''}">${esc(e.title)}</div>
+        ${e.description?`<div class="ev-desc">${esc(e.description)}</div>`:''}
+        <div class="ev-actions"><div>${e.type==='recurring'?'<span class="badge">Daily</span>':''}</div>
+        ${st==='pending'?`<div class="act-btns"><button class="act-btn act-skip" onclick="skipEvent('${e.id}')">Skip</button><button class="act-btn act-done" onclick="completeEvent('${e.id}')">Done</button></div>`:''}</div>
+        </div></div>`;
+    }).join('');
+    renderStats();
+}
+function addEvent(d){events.push({id:Date.now().toString(),...d});renderTimeline()}
+function delEvent(id){events=events.filter(e=>e.id!==id);delete completionLog[id];renderTimeline()}
+function completeEvent(id){completionLog[id]='completed';renderTimeline()}
+function skipEvent(id){completionLog[id]='skipped';renderTimeline()}
+
+function closeAll(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'))}
+function openAddEvent(){closeAll();document.getElementById('addModal').classList.add('open');document.getElementById('fTitle').focus()}
+function openMood(){closeAll();selectedMood=null;renderMoodGrid();document.getElementById('moodNote').value='';document.getElementById('moodSubmit').disabled=true;document.getElementById('moodModal').classList.add('open')}
+function openFeedback(){closeAll();renderFeedback();document.getElementById('feedbackModal').classList.add('open')}
+function openChat(){closeAll();renderChatHistory();document.getElementById('chatModal').classList.add('open');document.getElementById('chatMode').textContent=apiKey?'LLM Connected':'Local Mode';document.getElementById('chatInput').focus()}
+document.querySelectorAll('.overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)closeAll()})});
+
+function pickType(btn){selectedType=btn.dataset.t;document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on')}
+document.getElementById('eventForm').addEventListener('submit',e=>{
+    e.preventDefault();const t=document.getElementById('fTitle').value.trim();if(!t)return;
+    addEvent({title:t,description:document.getElementById('fDesc').value.trim(),time:document.getElementById('fTime').value,type:selectedType});
+    document.getElementById('eventForm').reset();selectedType='onetime';document.querySelectorAll('.tbtn').forEach(b=>b.classList.toggle('on',b.dataset.t==='onetime'));closeAll();
+});
+
+function renderMoodGrid(){document.getElementById('moodGrid').innerHTML=MOODS.map(m=>`<button type="button" class="mood-btn ${selectedMood===m.v?'on':''}" onclick="pickMood('${m.v}')"><span class="emoji">${m.e}</span><span class="mlabel">${m.l}</span></button>`).join('')}
+function pickMood(v){selectedMood=v;renderMoodGrid();document.getElementById('moodSubmit').disabled=false}
+function submitMood(){if(!selectedMood)return;currentMood=selectedMood;renderStats();closeAll()}
+
+function generateFeedback(){
+    const s=getStats(),msgs=[];
+    if(!s.total)return[{type:'feedback',text:"You have zero tasks scheduled. That's not discipline — that's hiding. Build your day or your day builds you."}];
+    if(s.rate===100)msgs.push({type:'feedback',text:"All tasks completed. Acceptable. Don't let this make you comfortable — that's where decay starts. Raise the bar tomorrow."});
+    else if(s.rate>=80)msgs.push({type:'feedback',text:`${s.rate}% completion. Almost. "Almost" is the language of people who don't finish. Close the gap.`});
+    else if(s.rate>=50)msgs.push({type:'feedback',text:`${s.rate}%. Half-measures. You showed up for half your life today. The other half? Wasted. Unacceptable.`});
+    else if(s.completed>0)msgs.push({type:'feedback',text:`${s.rate}% completion. Pathetic. ${s.total} tasks and you couldn't handle ${s.total-s.completed}. What were you doing?`});
+    else if(s.skipped>0)msgs.push({type:'feedback',text:`Zero completions. ${s.skipped} skipped. You didn't have a bad day — you chose to fail. Every skip was a decision. Own it.`});
+    s.skippedTasks.forEach(t=>{const p=rand(PENALTIES);msgs.push({type:'penalty',text:`You skipped "${t.title}." No excuse given. Penalty: ${p.task}`,penalty:p})});
+    if(currentMood&&(currentMood==='bad'||currentMood==='terrible'))msgs.push({type:'stoic',text:`You feel "${currentMood}." Good — you're aware. Pain is information, not permission to quit. ${rand(STOICS)} Your feelings are valid. Your excuses are not. Move.`});
+    else if(currentMood==='neutral')msgs.push({type:'stoic',text:'"Neutral" is comfortable mediocrity dressed as stability. Find the edge and push past it.'});
+    if(s.pending>0)msgs.push({type:'reminder',text:`${s.pending} task${s.pending>1?'s':''} still pending. The day isn't over. You still have time to not be a disappointment. Execute.`});
+    return msgs.length?msgs:[{type:'feedback',text:"I'm watching. Don't give me a reason to be disappointed."}];
+}
+function renderFeedback(){
+    const tags={feedback:'The Spartan',penalty:'Penalty',stoic:'Stoic Fire',reminder:'Reminder'};
+    document.getElementById('feedbackBody').innerHTML=generateFeedback().map(f=>`<div class="fb-card ${f.type}"><div class="fb-tag">${tags[f.type]}</div><div class="fb-text">${f.text}</div>${f.penalty?`<div class="penalty-box">${f.penalty.d} — Intensity: ${f.penalty.i}</div>`:''}</div>`).join('');
+}
+
+function renderChatHistory(){
+    if(!chatHistory.length)chatHistory=[{role:'coach',text:"I'm The Spartan. I don't do pleasantries. Show me your schedule, tell me your excuses, or ask me what to do. But don't waste my time.",time:fmtNow()}];
+    document.getElementById('chatArea').innerHTML=chatHistory.map(m=>{
+        if(m.role==='user')return`<div class="chat-msg msg-user"><div class="msg-text">${esc(m.text)}</div><div class="msg-time">${m.time}</div></div>`;
+        return`<div class="chat-msg msg-coach"><div class="sender">SPARTAN</div><div class="msg-text">${esc(m.text)}</div><div class="msg-time">${m.time}</div></div>`;
+    }).join('');
+    const ca=document.getElementById('chatArea');ca.scrollTop=ca.scrollHeight;
+}
+function clearChat(){chatHistory=[{role:'coach',text:"Clean slate. But erasing the conversation doesn't erase what you did or didn't do. Now talk.",time:fmtNow()}];renderChatHistory()}
+function toggleSettings(){document.getElementById('settingsPanel').classList.toggle('open');document.getElementById('apiKeyInput').value=apiKey}
+function saveApiKey(){apiKey=document.getElementById('apiKeyInput').value.trim();localStorage.setItem('ros-api-key',apiKey);document.getElementById('settingsPanel').classList.remove('open');document.getElementById('chatMode').textContent=apiKey?'LLM Connected':'Local Mode'}
+
+function localReply(msg){
+    const s=getStats(),m=msg.toLowerCase();
+    if(m.includes('tired')||m.includes('exhaust')||m.includes("can't"))return`"Tired" is not a status — it's announcing weakness. ${rand(STOICS)} ${s.pending} tasks left. Start the next one in 60 seconds or tiredness wins.`;
+    if(m.includes('skip')||m.includes('postpone')||m.includes('later')){const p=rand(PENALTIES);return`Postpone? That's quitting with extra steps. Penalty: ${p.task}`}
+    if(m.includes('feel')||m.includes('bad')||m.includes('sad'))return`Your feelings are real. Also irrelevant to execution. ${rand(STOICS)} Pain is the fee for a life worth living. Work.`;
+    if(m.includes('good')||m.includes('great'))return`Feeling good is not an achievement. Use it. ${s.pending} pending — move while momentum is there.`;
+    if(m.includes('help')||m.includes('advice'))return s.pending>0?`Stop asking. Start doing. ${s.pending} items remain. Hardest one first.`:'Add harder tasks. If everything is comfortable, your bar is too low.';
+    if(m.includes('done')||m.includes('finish'))return s.rate===100?"Acceptable. Don't celebrate baseline. Tomorrow should be harder.":`"Done"? ${s.rate}% completion. You quit. Get back in there.`;
+    if(s.skipped>0)return`You're chatting instead of executing. ${s.skipped} skipped tasks haunt your record. Go fix that.`;
+    return`I don't do small talk. ${s.pending} pending, ${s.rate}% rate. Action is the only currency I accept. What are you going to DO?`;
+}
+async function sendChat(){
+    const input=document.getElementById('chatInput'),text=input.value.trim();if(!text)return;input.value='';
+    chatHistory.push({role:'user',text,time:fmtNow()});renderChatHistory();
+    if(apiKey){
+        try{
+            const s=getStats(),ctx=`Schedule: ${s.total} tasks, ${s.completed} done, ${s.skipped} skipped, ${s.pending} pending. Rate: ${s.rate}%. Mood: ${currentMood||'not logged'}.`;
+            const msgs=[{role:'system',content:SYS_PROMPT},{role:'system',content:ctx}];
+            chatHistory.filter(m=>m.role).slice(-16).forEach(m=>msgs.push({role:m.role==='coach'?'assistant':'user',content:m.text}));
+            const res=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:'gpt-4o',messages:msgs,temperature:.8,max_tokens:250})});
+            if(res.ok){const d=await res.json(),t=d.choices?.[0]?.message?.content;if(t){chatHistory.push({role:'coach',text:t,time:fmtNow()});renderChatHistory();return}}
+        }catch(e){console.error(e)}
+    }
+    chatHistory.push({role:'coach',text:localReply(text),time:fmtNow()});renderChatHistory();
+}
+document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat()}});
+
+renderTimeline();
+setTimeout(()=>{
+    addEvent({title:'Morning Run',description:'5K minimum. No walking.',time:'06:30',type:'recurring'});
+    addEvent({title:'Deep Work Block',description:'3 hours focused work, no distractions',time:'09:00',type:'recurring'});
+    addEvent({title:'Team Standup',description:'Daily sync with the team',time:'12:00',type:'recurring'});
+    addEvent({title:'Project Review',description:'Review Routine OS progress',time:'15:00',type:'onetime'});
+    addEvent({title:'Evening Reading',description:'30 min non-fiction',time:'21:00',type:'recurring'});
+},300);
+</script>
+</body>
+</html>
