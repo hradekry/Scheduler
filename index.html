@@ -243,11 +243,12 @@
 
     <!-- Context Switcher -->
     <button class="context-switcher" id="contextSwitcher" onclick="toggleContextMenu()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="1" stroke="currentColor" stroke-width="2" fill="currentColor"/>
-            <circle cx="12" cy="5" r="1" stroke="currentColor" stroke-width="2" fill="currentColor"/>
-            <circle cx="12" cy="19" r="1" stroke="currentColor" stroke-width="2" fill="currentColor"/>
-        </svg>
+        <div style="position: relative; width: 24px; height: 24px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="position: absolute;">
+                <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L13 16M17 20L21 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="contextEmoji" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; line-height: 1;">📅</span>
+        </div>
     </button>
 
     <!-- Context Menu -->
@@ -341,10 +342,10 @@
         let tasks = [];
         
         const CONTEXTS = {
-            calendar: { title: 'Calendar', subtitle: 'Today' },
-            tasks: { title: 'Tasks', subtitle: 'Daily Checklist' },
-            metrics: { title: 'Metrics', subtitle: 'Health Tracking' },
-            coach: { title: 'Coach', subtitle: 'AI Assistant' }
+            calendar: { title: 'Calendar', subtitle: 'Today', emoji: '📅' },
+            tasks: { title: 'Tasks', subtitle: 'Daily Checklist', emoji: '✅' },
+            metrics: { title: 'Metrics', subtitle: 'Health Tracking', emoji: '📊' },
+            coach: { title: 'Coach', subtitle: 'AI Assistant', emoji: '🗣️' }
         };
 
         // Initialize
@@ -357,10 +358,11 @@
             });
             document.getElementById(currentContext + 'View').classList.add('active');
             
-            // Update header
+            // Update header and emoji
             const ctx = CONTEXTS[currentContext];
             document.getElementById('contextTitle').textContent = ctx.title;
             document.getElementById('contextSubtitle').textContent = ctx.subtitle;
+            document.getElementById('contextEmoji').textContent = ctx.emoji;
             
             // Update context menu
             document.querySelectorAll('.context-item').forEach(item => {
@@ -720,10 +722,11 @@
             });
             event.currentTarget.classList.add('active');
             
-            // Update header
+            // Update header and emoji
             const ctx = CONTEXTS[context];
             document.getElementById('contextTitle').textContent = ctx.title;
             document.getElementById('contextSubtitle').textContent = ctx.subtitle;
+            document.getElementById('contextEmoji').textContent = ctx.emoji;
             
             // Close menu
             toggleContextMenu();
