@@ -449,14 +449,25 @@
 
         async function loadData() {
             try {
-                await requestPersistentStorage();
+                requestPersistentStorage();
 
-                const storedEvents = (await idbGet('routine-os-events')) ?? localStorage.getItem('routine-os-events');
-                const storedMetrics = (await idbGet('routine-os-metrics')) ?? localStorage.getItem('routine-os-metrics');
-                const storedTasks = (await idbGet('routine-os-tasks')) ?? localStorage.getItem('routine-os-tasks');
-                const storedContext = (await idbGet('routine-os-context')) ?? localStorage.getItem('routine-os-context');
-                const storedSelectedDate = (await idbGet('routine-os-selected-date')) ?? localStorage.getItem('routine-os-selected-date');
-                const storedAlarms = (await idbGet('routine-os-alarms')) ?? localStorage.getItem('routine-os-alarms');
+                // Try IndexedDB first, fall back to localStorage
+                let storedEvents, storedMetrics, storedTasks, storedContext, storedSelectedDate;
+                try {
+                    storedEvents = await idbGet('routine-os-events');
+                    storedMetrics = await idbGet('routine-os-metrics');
+                    storedTasks = await idbGet('routine-os-tasks');
+                    storedContext = await idbGet('routine-os-context');
+                    storedSelectedDate = await idbGet('routine-os-selected-date');
+                } catch (idbErr) {
+                    console.warn('IndexedDB load failed, using localStorage:', idbErr);
+                }
+                // Fall back to localStorage for any missing values
+                if (!storedEvents) storedEvents = localStorage.getItem('routine-os-events');
+                if (!storedMetrics) storedMetrics = localStorage.getItem('routine-os-metrics');
+                if (!storedTasks) storedTasks = localStorage.getItem('routine-os-tasks');
+                if (!storedContext) storedContext = localStorage.getItem('routine-os-context');
+                if (!storedSelectedDate) storedSelectedDate = localStorage.getItem('routine-os-selected-date');
                 
                 if (storedEvents) {
                     events = JSON.parse(storedEvents);
@@ -508,45 +519,33 @@
             }
         }
 
-        async function saveData() {
+        function saveData() {
+            // Sync localStorage (fast, reliable)
             try {
                 localStorage.setItem('routine-os-events', JSON.stringify(events));
                 localStorage.setItem('routine-os-metrics', JSON.stringify(metrics));
                 localStorage.setItem('routine-os-tasks', JSON.stringify(tasks));
                 localStorage.setItem('routine-os-context', currentContext);
                 localStorage.setItem('routine-os-selected-date', selectedDate.toISOString());
+            } catch (e) {
+                console.warn('localStorage save failed:', e);
+            }
 
-                await idbSet('routine-os-events', JSON.stringify(events));
-                await idbSet('routine-os-metrics', JSON.stringify(metrics));
-                await idbSet('routine-os-tasks', JSON.stringify(tasks));
-                await idbSet('routine-os-context', currentContext);
-                await idbSet('routine-os-selected-date', selectedDate.toISOString());
-                
-                // Also save a backup with timestamp
-                const backup = {
-                    events,
-                    tasks,
-                    metrics,
-                    context: currentContext,
-                    timestamp: new Date().toISOString()
-                };
-                localStorage.setItem('routine-os-backup', JSON.stringify(backup));
-                await idbSet('routine-os-backup', JSON.stringify(backup));
-                
-                console.log('Data saved successfully');
-            } catch (error) {
-                console.error('Error saving data:', error);
-                // Try to clear some space if localStorage is full
-                try {
-                    const keys = Object.keys(localStorage);
-                    if (keys.length > 10) {
-                        // Remove old backups if storage is full
-                        keys.filter(k => k.includes('backup')).forEach(k => localStorage.removeItem(k));
-                        saveData(); // Try again
-                    }
-                } catch (e) {
-                    alert('Storage full. Please clear some data or use a modern browser.');
-                }
+            // Async IndexedDB (persistent, non-blocking)
+            try {
+                const evJson = JSON.stringify(events);
+                const meJson = JSON.stringify(metrics);
+                const taJson = JSON.stringify(tasks);
+                const sdJson = selectedDate.toISOString();
+                Promise.all([
+                    idbSet('routine-os-events', evJson),
+                    idbSet('routine-os-metrics', meJson),
+                    idbSet('routine-os-tasks', taJson),
+                    idbSet('routine-os-context', currentContext),
+                    idbSet('routine-os-selected-date', sdJson)
+                ]).catch(err => console.warn('IndexedDB save failed:', err));
+            } catch (e) {
+                console.warn('IndexedDB save skipped:', e);
             }
         }
 
