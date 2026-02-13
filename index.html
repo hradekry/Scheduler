@@ -326,6 +326,7 @@
 
     <script>
         // State Management
+        let dataLoaded = false;
         let currentDate = new Date();
         let selectedDate = new Date();
         let events = [];
@@ -393,6 +394,19 @@
 
             // Render initial content
             renderContextContent(currentContext);
+
+            dataLoaded = true;
+
+            // Start intervals AFTER data is loaded
+            setInterval(checkAutoFeedback, 60000);
+            checkAutoFeedback();
+            setInterval(checkAlarms, 30000);
+            checkAlarms();
+            renderCoachLog();
+
+            document.getElementById('coachInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendCoachCommand();
+            });
         });
 
         // Data Persistence (IndexedDB + localStorage fallback)
@@ -520,6 +534,7 @@
         }
 
         function saveData() {
+            if (!dataLoaded) return; // Don't save until data is loaded
             // Sync localStorage (fast, reliable)
             try {
                 localStorage.setItem('routine-os-events', JSON.stringify(events));
@@ -1644,19 +1659,6 @@
             document.getElementById('feedbackBanner').classList.remove('show');
         }
 
-        // Start auto-feedback check every 60 seconds
-        setInterval(checkAutoFeedback, 60000);
-        checkAutoFeedback();
-        setInterval(checkAlarms, 30000);
-        checkAlarms();
-
-        // Initialize coach log
-        renderCoachLog();
-
-        // Coach input Enter key
-        document.getElementById('coachInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendCoachCommand();
-        });
 
         // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
