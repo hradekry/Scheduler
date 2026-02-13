@@ -387,23 +387,104 @@
 
         // Data Persistence
         function loadData() {
-            const storedEvents = localStorage.getItem('routine-os-events');
-            const storedMetrics = localStorage.getItem('routine-os-metrics');
-            const storedTasks = localStorage.getItem('routine-os-tasks');
-            const storedContext = localStorage.getItem('routine-os-context');
-            
-            if (storedEvents) events = JSON.parse(storedEvents);
-            if (storedMetrics) metrics = JSON.parse(storedMetrics);
-            if (storedTasks) tasks = JSON.parse(storedTasks);
-            if (storedContext) currentContext = storedContext;
+            try {
+                const storedEvents = localStorage.getItem('routine-os-events');
+                const storedMetrics = localStorage.getItem('routine-os-metrics');
+                const storedTasks = localStorage.getItem('routine-os-tasks');
+                const storedContext = localStorage.getItem('routine-os-context');
+                const storedAlarms = localStorage.getItem('routine-os-alarms');
+                
+                if (storedEvents) {
+                    events = JSON.parse(storedEvents);
+                    // Validate and clean events data
+                    events = events.filter(e => e && e.id && e.title && e.date);
+                }
+                if (storedMetrics) {
+                    metrics = JSON.parse(storedMetrics);
+                    // Ensure metrics structure is complete
+                    if (!metrics.water) metrics.water = { current: 0, target: 2000 };
+                    if (!metrics.sleep) metrics.sleep = { hours: null };
+                    if (!metrics.exercise) metrics.exercise = { done: false };
+                }
+                if (storedTasks) {
+                    tasks = JSON.parse(storedTasks);
+                    // Validate and clean tasks data
+                    tasks = tasks.filter(t => t && t.id && t.title && t.date);
+                    // Ensure all tasks have required properties
+                    tasks.forEach(task => {
+                        if (!task.completed) task.completed = false;
+                        if (!task.skippedDates) task.skippedDates = [];
+                        if (!task.description) task.description = '';
+                    });
+                }
+                if (storedContext) {
+                    currentContext = storedContext;
+                }
+                
+                console.log('Data loaded successfully:', { events: events.length, tasks: tasks.length, metrics, context: currentContext });
+            } catch (error) {
+                console.error('Error loading data:', error);
+                // Reset to defaults if data is corrupted
+                events = [];
+                tasks = [];
+                metrics = {
+                    water: { current: 0, target: 2000 },
+                    sleep: { hours: null },
+                    exercise: { done: false }
+                };
+                currentContext = 'calendar';
+                saveData(); // Save clean defaults
+            }
         }
 
         function saveData() {
-            localStorage.setItem('routine-os-events', JSON.stringify(events));
-            localStorage.setItem('routine-os-metrics', JSON.stringify(metrics));
-            localStorage.setItem('routine-os-tasks', JSON.stringify(tasks));
-            localStorage.setItem('routine-os-context', currentContext);
+            try {
+                localStorage.setItem('routine-os-events', JSON.stringify(events));
+                localStorage.setItem('routine-os-metrics', JSON.stringify(metrics));
+                localStorage.setItem('routine-os-tasks', JSON.stringify(tasks));
+                localStorage.setItem('routine-os-context', currentContext);
+                
+                // Also save a backup with timestamp
+                const backup = {
+                    events,
+                    tasks,
+                    metrics,
+                    context: currentContext,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('routine-os-backup', JSON.stringify(backup));
+                
+                console.log('Data saved successfully');
+            } catch (error) {
+                console.error('Error saving data:', error);
+                // Try to clear some space if localStorage is full
+                try {
+                    const keys = Object.keys(localStorage);
+                    if (keys.length > 10) {
+                        // Remove old backups if storage is full
+                        keys.filter(k => k.includes('backup')).forEach(k => localStorage.removeItem(k));
+                        saveData(); // Try again
+                    }
+                } catch (e) {
+                    alert('Storage full. Please clear some data or use a modern browser.');
+                }
+            }
         }
+
+        // Auto-save every 30 seconds
+        setInterval(saveData, 30000);
+
+        // Save before page unload
+        window.addEventListener('beforeunload', saveData);
+
+        // Listen for storage changes from other tabs
+        window.addEventListener('storage', (e) => {
+            if (e.key && e.key.startsWith('routine-os-')) {
+                console.log('Data changed in another tab, reloading...');
+                loadData();
+                renderContextContent(currentContext);
+            }
+        });
 
         // Calendar Functions
         function renderCalendar() {
@@ -893,6 +974,69 @@
             });
         });
 
+        // Data Restore Function
+        function restoreFromFile() {
+            const fileInput = document.getElementById('restoreFile');
+            if (!fileInput.files.length) {
+                addCoachMessage('No file selected. Please choose a backup file first.', 'harsh');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Validate data structure
+                    if (!data || typeof data !== 'object') {
+                        throw new Error('Invalid file format');
+                    }
+                    
+                    // Restore data with validation
+                    if (data.events && Array.isArray(data.events)) {
+                        events = data.events.filter(e => e && e.id && e.title && e.date);
+                    }
+                    if (data.tasks && Array.isArray(data.tasks)) {
+                        tasks = data.tasks.filter(t => t && t.id && t.title && t.date);
+                        // Ensure tasks have required properties
+                        tasks.forEach(task => {
+                            if (!task.completed) task.completed = false;
+                            if (!task.skippedDates) task.skippedDates = [];
+                            if (!task.description) task.description = '';
+                        });
+                    }
+                    if (data.metrics && typeof data.metrics === 'object') {
+                        metrics = {
+                            water: { current: 0, target: 2000, ...data.metrics.water },
+                            sleep: { hours: null, ...data.metrics.sleep },
+                            exercise: { done: false, ...data.metrics.exercise }
+                        };
+                    }
+                    if (data.context && typeof data.context === 'string') {
+                        currentContext = data.context;
+                    }
+                    
+                    saveData();
+                    renderContextContent(currentContext);
+                    
+                    const backupDate = data.timestamp ? new Date(data.timestamp).toLocaleDateString() : 'unknown';
+                    addCoachMessage(`<strong>DATA RESTORED SUCCESSFULLY</strong><br>• Events: ${events.length}<br>• Tasks: ${tasks.length}<br>• Backup date: ${backupDate}<br><em>Your data has been restored and is ready to use.</em>`, 'success');
+                    
+                } catch (error) {
+                    console.error('Restore error:', error);
+                    addCoachMessage('<strong>RESTORE FAILED</strong><br>The file is not a valid backup or is corrupted.<br><em>Please try a different backup file.</em>', 'harsh');
+                }
+            };
+            
+            reader.onerror = function() {
+                addCoachMessage('<strong>FILE READ ERROR</strong><br>Could not read the selected file.<br><em>Please try again or choose a different file.</em>', 'harsh');
+            };
+            
+            reader.readAsText(file);
+        }
+
         
 
         // ============================================================
@@ -1157,6 +1301,64 @@
                 addCoachMessage(`<strong>ALARMS</strong><br>${list}`, 'advice');
                 return;
             }
+            // DATA MANAGEMENT
+            if (cmd.includes('backup') || cmd.includes('save data') || cmd.includes('export')) {
+                const data = {
+                    events,
+                    tasks,
+                    metrics,
+                    context: currentContext,
+                    timestamp: new Date().toISOString()
+                };
+                const dataStr = JSON.stringify(data, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `routine-os-backup-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                addCoachMessage(`<strong>DATA BACKUP CREATED</strong><br>Downloaded: routine-os-backup-${new Date().toISOString().split('T')[0]}.json<br><em>Keep this file safe to restore your data later.</em>`, 'success');
+                return;
+            }
+
+            if (cmd.includes('restore') || cmd.includes('import data')) {
+                addCoachMessage(`<strong>DATA RESTORE</strong><br>To restore data:<br>1. Click the "Choose File" button below<br>2. Select your backup file<br>3. Data will be restored immediately<br><br><input type="file" id="restoreFile" accept=".json" style="color:#000;background:#fff;padding:8px;border-radius:4px;"><br><button onclick="restoreFromFile()" style="margin-top:8px;padding:8px 16px;background:#a855f7;color:#000;border:none;border-radius:4px;cursor:pointer;">Restore Now</button>`, 'advice');
+                return;
+            }
+
+            if (cmd.includes('clear data') || cmd.includes('reset all') || cmd.includes('delete all')) {
+                if (confirm('⚠️ This will delete ALL your data (tasks, events, metrics). This cannot be undone. Are you sure?')) {
+                    if (confirm('🚨 Final confirmation: All data will be permanently deleted. Continue?')) {
+                        events = [];
+                        tasks = [];
+                        metrics = {
+                            water: { current: 0, target: 2000 },
+                            sleep: { hours: null },
+                            exercise: { done: false }
+                        };
+                        currentContext = 'calendar';
+                        saveData();
+                        renderContextContent(currentContext);
+                        addCoachMessage('<strong>ALL DATA CLEARED</strong><br>Your scheduler has been reset to factory defaults.<br><em>Start fresh by adding new tasks and events.</em>', 'harsh');
+                        return;
+                    }
+                }
+                addCoachMessage('Data clear cancelled. Your data is safe.', 'advice');
+                return;
+            }
+
+            if (cmd.includes('storage') || cmd.includes('memory') || cmd.includes('data info')) {
+                const storageUsed = JSON.stringify(localStorage).length;
+                const itemCount = {
+                    events: events.length,
+                    tasks: tasks.length,
+                    metrics: Object.keys(metrics).length
+                };
+                addCoachMessage(`<strong>STORAGE INFO</strong><br>• Events: ${itemCount.events}<br>• Tasks: ${itemCount.tasks}<br>• Storage used: ~${Math.round(storageUsed/1024)}KB<br>• Last backup: ${localStorage.getItem('routine-os-backup') ? 'Available' : 'None'}<br><br>Commands: "backup", "clear data", "restore"`, 'info');
+                return;
+            }
+
             // PROGRESS REVIEW
             if (cmd.includes('progress') || cmd.includes('how am i') || cmd.includes('status') || cmd.includes('check')) {
                 runProgressReview();
