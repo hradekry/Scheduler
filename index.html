@@ -51,16 +51,13 @@
         .toggle-slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;top:2px;background:#a855f7;transition:.2s;border-radius:50%}
         .toggle input:checked + .toggle-slider{background:rgba(168,85,247,.2)}
         .toggle input:checked + .toggle-slider:before{transform:translateX(20px)}
-        .metrics-grid{display:grid;grid-template-columns:1fr;gap:16px}
-        .metric-card{background:#0a0a0a;border:0.5px solid rgba(168,85,247,.5);border-radius:12px;padding:16px;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-        .metric-card:hover{border-color:#d8b4fe;box-shadow:0 4px 12px rgba(168,85,247,.15)}
-        .metric-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-        .metric-title{font-size:14px;font-weight:600;color:#d1d5db}
-        .metric-value{font-size:16px;color:#a855f7;font-weight:700}
-        .metric-actions{display:flex;gap:10px;margin-top:12px}
-        .metric-btn{flex:1;min-height:38px;padding:8px 10px;background:rgba(168,85,247,.08);border:0.5px solid rgba(168,85,247,.4);color:#a855f7;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
-        .metric-btn:hover{background:rgba(168,85,247,.2);transform:translateY(-1px)}
-        .metric-btn.done{background:#a855f7;color:#000;border-color:#a855f7}
+        .track-bar{width:100%;height:6px;background:#1a1a1a;border-radius:3px;overflow:hidden;margin:6px 0 4px}
+        .track-fill{height:100%;background:linear-gradient(90deg,#a855f7,#d8b4fe);border-radius:3px;transition:width .3s}
+        .track-info{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#9ca3af}
+        .track-btns{display:flex;gap:6px;margin-top:6px}
+        .track-btn{padding:4px 10px;background:rgba(168,85,247,.08);border:0.5px solid rgba(168,85,247,.4);color:#a855f7;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+        .track-btn:hover{background:rgba(168,85,247,.2)}
+        .track-btn.reset{color:#f59e0b;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
         .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:50}
         .overlay.open{display:flex}
         .modal{background:#0a0a0a;border-top:1px solid #a855f7;width:100%;max-width:448px;border-radius:12px 12px 0 0;max-height:85vh;display:flex;flex-direction:column}
@@ -190,16 +187,6 @@
             </section>
         </div>
 
-        <!-- Metrics View -->
-        <div id="metricsView" class="view-container">
-            <section class="section">
-                <h2 class="section-title">Health Metrics</h2>
-                <div class="metrics-grid" id="metricsGrid">
-                    <!-- Metrics will be rendered here -->
-                </div>
-            </section>
-        </div>
-
         <!-- Coach View -->
         <div id="coachView" class="view-container">
             <section class="section">
@@ -217,8 +204,8 @@
                         <button class="coach-quick-btn" onclick="coachCommand('review progress')">Progress</button>
                         <button class="coach-quick-btn" onclick="coachCommand('recommend')">Recommend</button>
                         <button class="coach-quick-btn" onclick="coachCommand('motivate me')">Motivate</button>
-                        <button class="coach-quick-btn" onclick="coachCommand('sleep hygiene')">Sleep</button>
-                        <button class="coach-quick-btn" onclick="coachCommand('work density')">Work</button>
+                        <button class="coach-quick-btn" onclick="coachCommand('export')">Export</button>
+                        <button class="coach-quick-btn" onclick="coachCommand('import')">Import</button>
                     </div>
                     <div class="coach-input-row">
                         <input type="text" class="coach-input" id="coachInput" placeholder="Command the Coach...">
@@ -338,6 +325,32 @@
                             <button type="button" class="tbtn" data-type="recurring" onclick="pickTaskType(this)">Daily</button>
                         </div>
                     </div>
+                    <div class="fg">
+                        <label class="fl">Trackable</label>
+                        <div class="setting-row" style="border:none;padding:6px 0">
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color:#a855f7;flex-shrink:0"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                <span style="font-size:13px;color:#d1d5db">Track progress</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="taskTrackable" onchange="toggleTrackableFields('task')">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="taskTrackableFields" style="display:none">
+                        <div class="fg">
+                            <label class="fl">Target</label>
+                            <div style="display:flex;gap:8px">
+                                <input type="number" class="fi" id="taskTarget" placeholder="e.g. 2000" min="1" style="flex:2">
+                                <input type="text" class="fi" id="taskUnit" placeholder="ml, min, reps..." style="flex:1">
+                            </div>
+                        </div>
+                        <div class="fg">
+                            <label class="fl">Increment per tap</label>
+                            <input type="number" class="fi" id="taskIncrement" placeholder="e.g. 250" min="1">
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-foot">
@@ -371,6 +384,32 @@
                             <button type="button" class="tbtn" data-type="recurring" onclick="pickEditTaskType(this)">Daily</button>
                         </div>
                     </div>
+                    <div class="fg">
+                        <label class="fl">Trackable</label>
+                        <div class="setting-row" style="border:none;padding:6px 0">
+                            <div style="display:flex;align-items:center;gap:10px">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color:#a855f7;flex-shrink:0"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                <span style="font-size:13px;color:#d1d5db">Track progress</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="editTaskTrackable" onchange="toggleTrackableFields('editTask')">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="editTaskTrackableFields" style="display:none">
+                        <div class="fg">
+                            <label class="fl">Target</label>
+                            <div style="display:flex;gap:8px">
+                                <input type="number" class="fi" id="editTaskTarget" placeholder="e.g. 2000" min="1" style="flex:2">
+                                <input type="text" class="fi" id="editTaskUnit" placeholder="ml, min, reps..." style="flex:1">
+                            </div>
+                        </div>
+                        <div class="fg">
+                            <label class="fl">Increment per tap</label>
+                            <input type="number" class="fi" id="editTaskIncrement" placeholder="e.g. 250" min="1">
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-foot">
@@ -386,11 +425,6 @@
         let currentDate = new Date();
         let selectedDate = new Date();
         let events = [];
-        let metrics = {
-            water: { current: 0, target: 2000 },
-            sleep: { hours: null },
-            exercise: { done: false }
-        };
         let selectedEventType = 'onetime';
         let selectedTaskType = 'onetime';
         let editingTaskId = null;
@@ -414,11 +448,6 @@
                 title: 'Tasks',
                 subtitle: 'Daily Checklist',
                 icon: '<path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
-            },
-            metrics: {
-                title: 'Metrics',
-                subtitle: 'Health Tracking',
-                icon: '<path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
             },
             coach: {
                 title: 'Coach',
@@ -535,10 +564,9 @@
                 requestPersistentStorage();
 
                 // Try IndexedDB first, fall back to localStorage
-                let storedEvents, storedMetrics, storedTasks, storedContext, storedSelectedDate, storedSettings;
+                let storedEvents, storedTasks, storedContext, storedSelectedDate, storedSettings;
                 try {
                     storedEvents = await idbGet('routine-os-events');
-                    storedMetrics = await idbGet('routine-os-metrics');
                     storedTasks = await idbGet('routine-os-tasks');
                     storedContext = await idbGet('routine-os-context');
                     storedSelectedDate = await idbGet('routine-os-selected-date');
@@ -548,7 +576,6 @@
                 }
                 // Fall back to localStorage for any missing values
                 if (!storedEvents) storedEvents = localStorage.getItem('routine-os-events');
-                if (!storedMetrics) storedMetrics = localStorage.getItem('routine-os-metrics');
                 if (!storedTasks) storedTasks = localStorage.getItem('routine-os-tasks');
                 if (!storedContext) storedContext = localStorage.getItem('routine-os-context');
                 if (!storedSettings) storedSettings = localStorage.getItem('routine-os-settings');
@@ -563,13 +590,6 @@
                         if (typeof event.alarmNotified !== 'boolean') event.alarmNotified = false;
                     });
                 }
-                if (storedMetrics) {
-                    metrics = JSON.parse(storedMetrics);
-                    // Ensure metrics structure is complete
-                    if (!metrics.water) metrics.water = { current: 0, target: 2000 };
-                    if (!metrics.sleep) metrics.sleep = { hours: null };
-                    if (!metrics.exercise) metrics.exercise = { done: false };
-                }
                 if (storedTasks) {
                     tasks = JSON.parse(storedTasks);
                     // Validate and clean tasks data
@@ -583,7 +603,7 @@
                     });
                 }
                 if (storedContext) {
-                    currentContext = storedContext;
+                    currentContext = CONTEXT_ORDER.includes(storedContext) ? storedContext : 'calendar';
                 }
                 if (storedSelectedDate) {
                     const parsedDate = new Date(storedSelectedDate);
@@ -600,17 +620,12 @@
                     };
                 }
                 
-                console.log('Data loaded successfully:', { events: events.length, tasks: tasks.length, metrics, context: currentContext });
+                console.log('Data loaded successfully:', { events: events.length, tasks: tasks.length, context: currentContext });
             } catch (error) {
                 console.error('Error loading data:', error);
                 // Reset to defaults if data is corrupted
                 events = [];
                 tasks = [];
-                metrics = {
-                    water: { current: 0, target: 2000 },
-                    sleep: { hours: null },
-                    exercise: { done: false }
-                };
                 currentContext = 'calendar';
                 saveData(); // Save clean defaults
             }
@@ -621,7 +636,6 @@
             // Sync localStorage (fast, reliable)
             try {
                 localStorage.setItem('routine-os-events', JSON.stringify(events));
-                localStorage.setItem('routine-os-metrics', JSON.stringify(metrics));
                 localStorage.setItem('routine-os-tasks', JSON.stringify(tasks));
                 localStorage.setItem('routine-os-context', currentContext);
                 localStorage.setItem('routine-os-selected-date', selectedDate.toISOString());
@@ -633,12 +647,10 @@
             // Async IndexedDB (persistent, non-blocking)
             try {
                 const evJson = JSON.stringify(events);
-                const meJson = JSON.stringify(metrics);
                 const taJson = JSON.stringify(tasks);
                 const sdJson = selectedDate.toISOString();
                 Promise.all([
                     idbSet('routine-os-events', evJson),
-                    idbSet('routine-os-metrics', meJson),
                     idbSet('routine-os-tasks', taJson),
                     idbSet('routine-os-context', currentContext),
                     idbSet('routine-os-selected-date', sdJson),
@@ -933,85 +945,8 @@
             renderCalendar();
         }
 
-        // Health Metrics Functions
-        function renderMetrics() {
-            const container = document.getElementById('metricsGrid');
-            const waterPercent = Math.round((metrics.water.current / metrics.water.target) * 100);
-            container.innerHTML = `
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <span class="metric-title">Water Intake</span>
-                        <span class="metric-value">${metrics.water.current}ml / ${metrics.water.target}ml</span>
-                    </div>
-                    <div class="metric-actions">
-                        <button class="metric-btn" onclick="addWater(250)">+250ml</button>
-                        <button class="metric-btn" onclick="addWater(500)">+500ml</button>
-                        <button class="metric-btn" onclick="resetWater()">Reset</button>
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <span class="metric-title">Sleep Duration</span>
-                        <span class="metric-value">${metrics.sleep.hours ? metrics.sleep.hours + ' hours' : 'Not set'}</span>
-                    </div>
-                    <div class="metric-actions">
-                        <input type="number" class="fi" id="sleepInput" placeholder="Hours" min="0" max="24" step="0.5" style="flex:1">
-                        <button class="metric-btn" onclick="setSleep()">Set</button>
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <span class="metric-title">Exercise</span>
-                        <span class="metric-value">${metrics.exercise.done ? 'Done ✅' : 'Not done'}</span>
-                    </div>
-                    <div class="metric-actions">
-                        <button class="metric-btn ${metrics.exercise.done ? 'done' : ''}" onclick="toggleExercise()">${metrics.exercise.done ? 'Mark as Not Done' : 'Mark as Done'}</button>
-                    </div>
-                </div>
-            `;
-
-            const sleepInput = document.getElementById('sleepInput');
-            if (sleepInput) {
-                sleepInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') setSleep();
-                });
-            }
-        }
-
-        function updateMetrics() {
-            renderMetrics();
-        }
-
-        function addWater(amount) {
-            metrics.water.current = Math.min(metrics.water.current + amount, metrics.water.target);
-            saveData();
-            updateMetrics();
-        }
-
-        function resetWater() {
-            metrics.water.current = 0;
-            saveData();
-            updateMetrics();
-        }
-
-        function setSleep() {
-            const hours = parseFloat(document.getElementById('sleepInput').value);
-            if (hours && hours >= 0 && hours <= 24) {
-                metrics.sleep.hours = hours;
-                saveData();
-                updateMetrics();
-                document.getElementById('sleepInput').value = '';
-            }
-        }
-
-        function toggleExercise() {
-            metrics.exercise.done = !metrics.exercise.done;
-            saveData();
-            updateMetrics();
-        }
-
         // Context Switching Functions
-        const CONTEXT_ORDER = ['calendar', 'tasks', 'metrics', 'coach'];
+        const CONTEXT_ORDER = ['calendar', 'tasks', 'coach'];
 
         function setContext(context) {
             currentContext = context;
@@ -1047,13 +982,44 @@
                 case 'tasks':
                     renderTasks();
                     break;
-                case 'metrics':
-                    renderMetrics();
-                    break;
                 case 'coach':
                     renderCoachLog();
                     break;
             }
+        }
+
+        function toggleTrackableFields(prefix) {
+            const cb = document.getElementById(prefix + 'Trackable');
+            const fields = document.getElementById(prefix + 'TrackableFields');
+            if (cb && fields) fields.style.display = cb.checked ? 'block' : 'none';
+        }
+
+        function getTrackCurrent(task, today) {
+            if (!task.trackable) return 0;
+            if (!task.trackProgress) task.trackProgress = {};
+            return task.trackProgress[today] || 0;
+        }
+
+        function trackIncrement(taskId, amount) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task || !task.trackable) return;
+            const today = formatDateKey(new Date());
+            if (!task.trackProgress) task.trackProgress = {};
+            task.trackProgress[today] = Math.max(0, (task.trackProgress[today] || 0) + amount);
+            if (task.trackProgress[today] >= task.trackTarget) task.completed = true;
+            saveData();
+            renderTasks();
+        }
+
+        function trackReset(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task || !task.trackable) return;
+            const today = formatDateKey(new Date());
+            if (!task.trackProgress) task.trackProgress = {};
+            task.trackProgress[today] = 0;
+            task.completed = false;
+            saveData();
+            renderTasks();
         }
 
         // Tasks Functions
@@ -1075,16 +1041,28 @@
             container.innerHTML = todayTasks.map(task => {
                 const skipped = task.skippedDates && task.skippedDates.includes(today);
                 const taskClass = skipped ? 'task-skipped' : task.completed ? 'task-done' : '';
-                const statusClass = skipped ? 'skipped' : task.completed ? 'completed' : 'active';
-                const statusText = skipped ? 'Skipped' : task.completed ? 'Completed' : 'Active';
                 const isSkipped = skipped;
+                const cur = getTrackCurrent(task, today);
+                const pct = task.trackable ? Math.min(100, Math.round((cur / task.trackTarget) * 100)) : 0;
+                const trackHtml = task.trackable ? `
+                    <div class="track-bar"><div class="track-fill" style="width:${pct}%"></div></div>
+                    <div class="track-info"><span>${cur} / ${task.trackTarget} ${task.trackUnit || ''}</span><span>${pct}%</span></div>
+                    <div class="track-btns">
+                        <button class="track-btn" onclick="trackIncrement('${task.id}', ${task.trackIncrement || 1})">+${task.trackIncrement || 1} ${task.trackUnit || ''}</button>
+                        <button class="track-btn" onclick="trackIncrement('${task.id}', -${task.trackIncrement || 1})">-${task.trackIncrement || 1}</button>
+                        <button class="track-btn reset" onclick="trackReset('${task.id}')">Reset</button>
+                    </div>
+                ` : '';
                 return `
                 <div class="event-item ${taskClass}">
-                    <div class="task-content">
-                        <div class="task-title">${task.title}</div>
-                        ${task.type === 'recurring' ? '<div class="task-meta">Daily</div>' : ''}
-                        ${task.description ? `<div class="task-desc">${task.description}</div>` : ''}
-                        ${isSkipped ? '<span class="badge badge-skip">Skipped</span>' : ''}
+                    <div class="task-content" style="flex:1;min-width:0">
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <div class="task-title" style="font-size:14px;font-weight:500">${task.title}</div>
+                            ${task.type === 'recurring' ? '<span style="font-size:9px;color:#a855f7;background:rgba(168,85,247,.1);padding:2px 6px;border-radius:4px;font-weight:600">DAILY</span>' : ''}
+                        </div>
+                        ${task.description ? `<div style="font-size:12px;color:#9ca3af;margin-top:2px">${task.description}</div>` : ''}
+                        ${trackHtml}
+                        ${isSkipped ? '<span style="font-size:9px;color:#f59e0b;background:rgba(245,158,11,.1);padding:2px 6px;border-radius:4px;font-weight:600;margin-top:4px;display:inline-block">SKIPPED</span>' : ''}
                     </div>
                     <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
                         <button class="del-btn" style="background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.3);color:#60a5fa" onclick="openEditTask('${task.id}')" title="Edit">
@@ -1108,6 +1086,11 @@
             document.getElementById('taskModal').classList.add('open');
             document.getElementById('taskTitle').value = '';
             document.getElementById('taskDesc').value = '';
+            document.getElementById('taskTrackable').checked = false;
+            document.getElementById('taskTrackableFields').style.display = 'none';
+            document.getElementById('taskTarget').value = '';
+            document.getElementById('taskUnit').value = '';
+            document.getElementById('taskIncrement').value = '';
             selectedTaskType = 'onetime';
             document.querySelectorAll('#taskForm .tbtn').forEach(b => b.classList.remove('on'));
             const defaultTaskBtn = document.querySelector('#taskForm .tbtn[data-type="onetime"]');
@@ -1123,16 +1106,24 @@
             }
 
             const taskType = getSelectedType('#taskForm');
-            const taskDate = taskType === 'recurring' ? formatDateKey(new Date()) : formatDateKey(new Date());
+            const isTrackable = document.getElementById('taskTrackable').checked;
 
             const task = {
                 id: Date.now().toString(),
                 title,
                 description: document.getElementById('taskDesc').value.trim(),
                 completed: false,
-                date: taskDate,
-                type: taskType
+                date: formatDateKey(new Date()),
+                type: taskType,
+                trackable: isTrackable
             };
+
+            if (isTrackable) {
+                task.trackTarget = parseFloat(document.getElementById('taskTarget').value) || 1;
+                task.trackUnit = document.getElementById('taskUnit').value.trim() || '';
+                task.trackIncrement = parseFloat(document.getElementById('taskIncrement').value) || 1;
+                task.trackProgress = {};
+            }
             
             tasks.push(task);
             saveData();
@@ -1180,6 +1171,12 @@
             document.querySelectorAll('#editTaskForm .tbtn').forEach(b => b.classList.remove('on'));
             const selectedBtn = document.querySelector(`#editTaskForm .tbtn[data-type="${task.type || 'onetime'}"]`);
             if (selectedBtn) selectedBtn.classList.add('on');
+            const trackCb = document.getElementById('editTaskTrackable');
+            trackCb.checked = !!task.trackable;
+            document.getElementById('editTaskTrackableFields').style.display = task.trackable ? 'block' : 'none';
+            document.getElementById('editTaskTarget').value = task.trackTarget || '';
+            document.getElementById('editTaskUnit').value = task.trackUnit || '';
+            document.getElementById('editTaskIncrement').value = task.trackIncrement || '';
             document.getElementById('editTaskModal').classList.add('open');
             document.getElementById('editTaskTitle').focus();
         }
@@ -1194,11 +1191,24 @@
             }
             const desc = document.getElementById('editTaskDesc').value.trim();
             const taskType = getSelectedType('#editTaskForm');
+            const isTrackable = document.getElementById('editTaskTrackable').checked;
 
             task.title = title;
             task.description = desc;
-
             task.type = taskType;
+            task.trackable = isTrackable;
+
+            if (isTrackable) {
+                task.trackTarget = parseFloat(document.getElementById('editTaskTarget').value) || 1;
+                task.trackUnit = document.getElementById('editTaskUnit').value.trim() || '';
+                task.trackIncrement = parseFloat(document.getElementById('editTaskIncrement').value) || 1;
+                if (!task.trackProgress) task.trackProgress = {};
+            } else {
+                delete task.trackTarget;
+                delete task.trackUnit;
+                delete task.trackIncrement;
+                delete task.trackProgress;
+            }
 
             saveData();
             renderTasks();
@@ -1213,9 +1223,6 @@
                     break;
                 case 'tasks':
                     addTask();
-                    break;
-                case 'metrics':
-                    // No action for metrics
                     break;
                 case 'coach':
                     document.getElementById('coachInput').focus();
@@ -1268,11 +1275,10 @@
                             if (!task.description) task.description = '';
                         });
                     }
-                    if (data.metrics && typeof data.metrics === 'object') {
-                        metrics = {
-                            water: { current: 0, target: 2000, ...data.metrics.water },
-                            sleep: { hours: null, ...data.metrics.sleep },
-                            exercise: { done: false, ...data.metrics.exercise }
+                    if (data.settings && typeof data.settings === 'object') {
+                        appSettings = {
+                            notificationsEnabled: data.settings.notificationsEnabled !== false,
+                            alarmsEnabled: data.settings.alarmsEnabled !== false
                         };
                     }
                     if (data.context && typeof data.context === 'string') {
@@ -1283,7 +1289,7 @@
                     renderContextContent(currentContext);
                     
                     const backupDate = data.timestamp ? new Date(data.timestamp).toLocaleDateString() : 'unknown';
-                    addCoachMessage(`<strong>DATA RESTORED SUCCESSFULLY</strong><br>• Events: ${events.length}<br>• Tasks: ${tasks.length}<br>• Backup date: ${backupDate}<br><em>Your data has been restored and is ready to use.</em>`, 'success');
+                    addCoachMessage(`<strong>DATA RESTORED SUCCESSFULLY</strong><br>• Events: ${events.length}<br>• Tasks: ${tasks.length}<br>• Backup date: ${backupDate}<br><em>Your data has been restored and is ready to use.</em>`, 'advice');
                     
                 } catch (error) {
                     console.error('Restore error:', error);
@@ -1296,6 +1302,47 @@
             };
             
             reader.readAsText(file);
+        }
+
+        function importFromPaste() {
+            const area = document.getElementById('importDataArea');
+            if (!area) return;
+            let raw = area.value.trim();
+            if (!raw) {
+                addCoachMessage('<strong>IMPORT FAILED</strong><br>The text area is empty. Paste the JSON from your export first.', 'harsh');
+                return;
+            }
+            // Try to extract JSON from a full export (user may paste the whole thing)
+            const jsonIdx = raw.lastIndexOf('{"events"');
+            if (jsonIdx > 0) raw = raw.substring(jsonIdx);
+            try {
+                const data = JSON.parse(raw);
+                if (data.events && Array.isArray(data.events)) {
+                    events = data.events.filter(e => e && e.id && e.title && e.date);
+                }
+                if (data.tasks && Array.isArray(data.tasks)) {
+                    tasks = data.tasks.filter(t => t && t.id && t.title);
+                    tasks.forEach(t => {
+                        if (!t.completed) t.completed = false;
+                        if (!t.skippedDates) t.skippedDates = [];
+                        if (!t.description) t.description = '';
+                        if (!t.date) t.date = formatDateKey(new Date());
+                    });
+                }
+                if (data.settings && typeof data.settings === 'object') {
+                    appSettings = {
+                        notificationsEnabled: data.settings.notificationsEnabled !== false,
+                        alarmsEnabled: data.settings.alarmsEnabled !== false
+                    };
+                }
+                saveData();
+                renderContextContent(currentContext);
+                const ts = data.timestamp ? new Date(data.timestamp).toLocaleDateString() : 'now';
+                addCoachMessage(`<strong>IMPORT SUCCESSFUL</strong><br>• Events: ${events.length}<br>• Tasks: ${tasks.length}<br>• From: ${ts}<br><em>All data restored. This device is now a clone.</em>`, 'advice');
+            } catch (err) {
+                console.error('Import parse error:', err);
+                addCoachMessage('<strong>IMPORT FAILED</strong><br>Could not parse JSON. Make sure you copied the full JSON line from the export.', 'harsh');
+            }
         }
 
         
@@ -1548,20 +1595,22 @@
         // ---- PROGRESS AWARENESS ----
         function getProgressSummary() {
             const today = formatDateKey(new Date());
-            const todayTasks = tasks.filter(t => t.date === today);
+            const todayTasks = tasks.filter(t => t.date === today || t.type === 'recurring');
             const activeTasks = todayTasks.filter(t => !t.skippedDates || !t.skippedDates.includes(today));
             const completedTasks = activeTasks.filter(t => t.completed);
             const skippedTasks = todayTasks.filter(t => t.skippedDates && t.skippedDates.includes(today));
             const todayEvents = events.filter(e => e.date === today);
-            const waterPct = Math.round((metrics.water.current / metrics.water.target) * 100);
+            const trackableTasks = activeTasks.filter(t => t.trackable);
+            const trackableProgress = trackableTasks.map(t => {
+                const cur = t.trackProgress && t.trackProgress[today] ? t.trackProgress[today] : 0;
+                return { title: t.title, current: cur, target: t.trackTarget, unit: t.trackUnit || '', pct: Math.min(100, Math.round((cur / t.trackTarget) * 100)) };
+            });
 
             return {
                 today,
                 tasks: { total: todayTasks.length, active: activeTasks.length, completed: completedTasks.length, skipped: skippedTasks.length, items: activeTasks },
                 events: { total: todayEvents.length, items: todayEvents },
-                water: { current: metrics.water.current, target: metrics.water.target, pct: waterPct },
-                sleep: { hours: metrics.sleep.hours },
-                exercise: { done: metrics.exercise.done }
+                trackable: trackableProgress
             };
         }
 
@@ -1593,41 +1642,56 @@
                 return;
             }
             // DATA MANAGEMENT
-            if (cmd.includes('backup') || cmd.includes('save data') || cmd.includes('export')) {
-                const data = {
-                    events,
-                    tasks,
-                    metrics,
-                    context: currentContext,
-                    timestamp: new Date().toISOString()
-                };
-                const dataStr = JSON.stringify(data, null, 2);
-                const blob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `routine-os-backup-${new Date().toISOString().split('T')[0]}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-                addCoachMessage(`<strong>DATA BACKUP CREATED</strong><br>Downloaded: routine-os-backup-${new Date().toISOString().split('T')[0]}.json<br><em>Keep this file safe to restore your data later.</em>`, 'success');
+            if (cmd.includes('export')) {
+                const today = formatDateKey(new Date());
+                let txt = `=== ROUTINE OS DATA EXPORT (${today}) ===\n\n`;
+                txt += `EVENTS (${events.length}):\n`;
+                if (events.length === 0) txt += '  (none)\n';
+                events.forEach(e => {
+                    txt += `- ${e.title}`;
+                    if (e.date) txt += ` | ${e.date}`;
+                    if (e.time) txt += ` ${e.time}`;
+                    txt += ` | ${e.type === 'recurring' ? 'Daily' : 'One-time'}`;
+                    if (e.alarmEnabled) txt += ' | Alarm: On';
+                    if (e.description) txt += ` | ${e.description}`;
+                    txt += '\n';
+                });
+                txt += `\nTASKS (${tasks.length}):\n`;
+                if (tasks.length === 0) txt += '  (none)\n';
+                tasks.forEach(t => {
+                    txt += `- ${t.title}`;
+                    txt += ` | ${t.type === 'recurring' ? 'Daily' : 'One-time'}`;
+                    if (t.trackable) {
+                        const cur = t.trackProgress && t.trackProgress[today] ? t.trackProgress[today] : 0;
+                        txt += ` | Trackable: ${cur}/${t.trackTarget} ${t.trackUnit || ''}`;
+                    }
+                    txt += ` | ${t.completed ? 'Completed' : 'Active'}`;
+                    if (t.description) txt += ` | ${t.description}`;
+                    txt += '\n';
+                });
+                txt += `\nSETTINGS:\n`;
+                txt += `  Notifications: ${appSettings.notificationsEnabled ? 'On' : 'Off'}\n`;
+                txt += `  Alarms: ${appSettings.alarmsEnabled ? 'On' : 'Off'}\n`;
+
+                const jsonData = JSON.stringify({ events, tasks, settings: appSettings, timestamp: new Date().toISOString() });
+
+                txt += `\n=== JSON (paste into "import" to clone on another device) ===\n${jsonData}`;
+
+                const escapedTxt = txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+                addCoachMessage(`<strong>DATA EXPORT</strong><br><div style="background:#111;border:1px solid rgba(168,85,247,.3);border-radius:8px;padding:12px;margin-top:8px;font-family:monospace;font-size:11px;line-height:1.6;word-break:break-all;user-select:all;-webkit-user-select:all;cursor:text">${escapedTxt}</div><br><em>Tap and hold the text above to select all, then copy. Paste it into Gemini/ChatGPT or into "import" on another device.</em>`, 'advice');
                 return;
             }
 
-            if (cmd.includes('restore') || cmd.includes('import data')) {
-                addCoachMessage(`<strong>DATA RESTORE</strong><br>To restore data:<br>1. Click the "Choose File" button below<br>2. Select your backup file<br>3. Data will be restored immediately<br><br><input type="file" id="restoreFile" accept=".json" style="color:#000;background:#fff;padding:8px;border-radius:4px;"><br><button onclick="restoreFromFile()" style="margin-top:8px;padding:8px 16px;background:#a855f7;color:#000;border:none;border-radius:4px;cursor:pointer;">Restore Now</button>`, 'advice');
+            if (cmd.includes('import') || cmd.includes('restore')) {
+                addCoachMessage(`<strong>IMPORT DATA</strong><br>Paste your exported JSON below and click Import.<br><br><textarea id="importDataArea" style="width:100%;min-height:80px;background:#111;border:1px solid rgba(168,85,247,.4);border-radius:8px;padding:10px;color:#fff;font-family:monospace;font-size:11px;resize:vertical" placeholder="Paste the JSON line from your export here..."></textarea><br><button onclick="importFromPaste()" style="margin-top:8px;padding:10px 20px;background:#a855f7;color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px">Import Now</button><br><br>Or choose a backup file:<br><input type="file" id="restoreFile" accept=".json" style="color:#fff;margin-top:6px"><br><button onclick="restoreFromFile()" style="margin-top:6px;padding:8px 16px;background:rgba(168,85,247,.2);color:#a855f7;border:1px solid rgba(168,85,247,.4);border-radius:6px;cursor:pointer;font-size:12px">Restore from File</button>`, 'advice');
                 return;
             }
 
             if (cmd.includes('clear data') || cmd.includes('reset all') || cmd.includes('delete all')) {
-                if (confirm('⚠️ This will delete ALL your data (tasks, events, metrics). This cannot be undone. Are you sure?')) {
-                    if (confirm('🚨 Final confirmation: All data will be permanently deleted. Continue?')) {
+                if (confirm('This will delete ALL your data (tasks, events). This cannot be undone. Are you sure?')) {
+                    if (confirm('Final confirmation: All data will be permanently deleted. Continue?')) {
                         events = [];
                         tasks = [];
-                        metrics = {
-                            water: { current: 0, target: 2000 },
-                            sleep: { hours: null },
-                            exercise: { done: false }
-                        };
                         currentContext = 'calendar';
                         saveData();
                         renderContextContent(currentContext);
@@ -1639,14 +1703,9 @@
                 return;
             }
 
-            if (cmd.includes('storage') || cmd.includes('memory') || cmd.includes('data info')) {
+            if (cmd.includes('storage') || cmd.includes('data info')) {
                 const storageUsed = JSON.stringify(localStorage).length;
-                const itemCount = {
-                    events: events.length,
-                    tasks: tasks.length,
-                    metrics: Object.keys(metrics).length
-                };
-                addCoachMessage(`<strong>STORAGE INFO</strong><br>• Events: ${itemCount.events}<br>• Tasks: ${itemCount.tasks}<br>• Storage used: ~${Math.round(storageUsed/1024)}KB<br>• Last backup: ${localStorage.getItem('routine-os-backup') ? 'Available' : 'None'}<br><br>Commands: "backup", "clear data", "restore"`, 'info');
+                addCoachMessage(`<strong>STORAGE INFO</strong><br>• Events: ${events.length}<br>• Tasks: ${tasks.length}<br>• Storage used: ~${Math.round(storageUsed/1024)}KB<br><br>Commands: "export", "import", "clear data"`, 'advice');
                 return;
             }
 
@@ -1684,19 +1743,20 @@
                 }
             }
 
-            // REVIEW METRICS (legacy alias)
-            if (cmd.includes('review') || cmd.includes('metric')) {
+            // REVIEW (legacy alias)
+            if (cmd.includes('review')) {
                 runProgressReview();
                 return;
             }
 
             // GENERIC HARSH RESPONSE
             const p = getProgressSummary();
+            const trackSummary = p.trackable.length > 0 ? p.trackable.map(t => `${t.title}: ${t.current}/${t.target} ${t.unit}`).join(', ') : '';
             const fallbackResponses = [
-                `I don\'t have a direct command for "${esc(cmd)}" yet. Current snapshot: tasks ${p.tasks.completed}/${p.tasks.active}, water ${p.water.current}ml, sleep ${p.sleep.hours ?? 'not logged'}, exercise ${p.exercise.done ? 'done' : 'not done'}. Try: "progress" or "recommend".`,
-                `Command not recognized. You\'ve got ${p.tasks.active} task${p.tasks.active === 1 ? '' : 's'} and ${p.events.total} event${p.events.total === 1 ? '' : 's'} today. If you want direction, ask for "progress" or "recommend".`,
+                `I don\'t have a direct command for "${esc(cmd)}" yet. Snapshot: tasks ${p.tasks.completed}/${p.tasks.active}${trackSummary ? ', ' + trackSummary : ''}, ${p.events.total} events. Try: "progress" or "recommend".`,
+                `Command not recognized. You\'ve got ${p.tasks.active} task${p.tasks.active === 1 ? '' : 's'} and ${p.events.total} event${p.events.total === 1 ? '' : 's'} today. Try "progress" or "recommend".`,
                 `"${esc(cmd)}" isn\'t in my playbook. If you want a review, say "progress". If you want the next move, say "recommend".`,
-                `I can\'t parse that, but I can still help: ${p.tasks.completed}/${p.tasks.active} tasks done, water ${p.water.pct}%, sleep ${p.sleep.hours ?? 'not logged'}, exercise ${p.exercise.done ? 'done' : 'not done'}. What do you want to optimize?`
+                `I can\'t parse that, but I can still help: ${p.tasks.completed}/${p.tasks.active} tasks done${trackSummary ? ', ' + trackSummary : ''}. What do you want to optimize?`
             ];
             addCoachMessage(rand(fallbackResponses), 'advice');
         }
@@ -1705,6 +1765,7 @@
             const p = getProgressSummary();
             let score = 0;
             let lines = [];
+            const maxTrackable = Math.max(1, p.trackable.length);
 
             // TASK assessment
             if (p.tasks.active === 0) {
@@ -1712,47 +1773,47 @@
             } else {
                 const taskPct = Math.round((p.tasks.completed / p.tasks.active) * 100);
                 if (taskPct === 100) {
-                    score += 1.5;
-                    lines.push(`<span style="color:#4ade80">TASKS: ${p.tasks.completed}/${p.tasks.active} — all complete. Strong execution. Use the extra bandwidth for one high-impact task or recovery.</span>`);
+                    score += 2;
+                    lines.push(`<span style="color:#4ade80">TASKS: ${p.tasks.completed}/${p.tasks.active} — all complete. Strong execution.</span>`);
                 } else if (taskPct >= 50) {
-                    score += 0.5;
-                    lines.push(`<span style="color:#fbbf24">TASKS: ${p.tasks.completed}/${p.tasks.active} done (${taskPct}%). ${p.tasks.active - p.tasks.completed} remaining. You\'re in the middle — tighten focus and close the open loops.</span>`);
+                    score += 1;
+                    lines.push(`<span style="color:#fbbf24">TASKS: ${p.tasks.completed}/${p.tasks.active} done (${taskPct}%). ${p.tasks.active - p.tasks.completed} remaining. Tighten focus.</span>`);
                 } else {
-                    lines.push(`<span style="color:#f87171">TASKS: ${p.tasks.completed}/${p.tasks.active} done (${taskPct}%). Momentum is low. ${p.tasks.skipped > 0 ? 'You skipped ' + p.tasks.skipped + ' task' + (p.tasks.skipped > 1 ? 's' : '') + '. Re-order tomorrow so the hardest item is first.' : 'Start with the smallest viable action and build.'}</span>`);
+                    lines.push(`<span style="color:#f87171">TASKS: ${p.tasks.completed}/${p.tasks.active} done (${taskPct}%). Momentum is low. ${p.tasks.skipped > 0 ? 'You skipped ' + p.tasks.skipped + '. Attack the hardest item first tomorrow.' : 'Start with the smallest action and build.'}</span>`);
                 }
             }
 
-            // WATER assessment
-            if (p.water.pct >= 100) { score++; lines.push(`<span style="color:#4ade80">WATER: ${p.water.current}ml — target met. Maintain a steady pace through the day.</span>`); }
-            else if (p.water.pct >= 50) { score += 0.5; lines.push(`<span style="color:#fbbf24">WATER: ${p.water.current}ml (${p.water.pct}%) — halfway. Add one glass each hour to close the gap.</span>`); }
-            else { lines.push(`<span style="color:#f87171">WATER: ${p.water.current}ml (${p.water.pct}%) — low. Hydration is a baseline performance lever. Fix it now.</span>`); }
-
-            // SLEEP assessment
-            if (p.sleep.hours === null) { lines.push(`<span style="color:#f87171">SLEEP: not logged — measure it so we can adjust. Log last night and we\'ll calibrate tonight.</span>`); }
-            else if (p.sleep.hours >= 7 && p.sleep.hours <= 9) { score++; lines.push(`<span style="color:#4ade80">SLEEP: ${p.sleep.hours}h — solid range. Protect this with a consistent shutdown routine.</span>`); }
-            else if (p.sleep.hours >= 5) { score += 0.5; lines.push(`<span style="color:#fbbf24">SLEEP: ${p.sleep.hours}h — short. Expect reduced focus today; schedule demanding work earlier.</span>`); }
-            else { lines.push(`<span style="color:#f87171">SLEEP: ${p.sleep.hours}h — critical. Recovery is compromised; prioritize rest and simplify the day.</span>`); }
-
-            // EXERCISE assessment
-            if (p.exercise.done) { score++; lines.push(`<span style="color:#4ade80">EXERCISE: done — good. If it felt easy, increase intensity or volume next session.</span>`); }
-            else { lines.push(`<span style="color:#f87171">EXERCISE: not done — movement is a keystone habit. Even 15–20 minutes counts.</span>`); }
+            // TRACKABLE assessment
+            if (p.trackable.length > 0) {
+                p.trackable.forEach(t => {
+                    if (t.pct >= 100) {
+                        score += 1;
+                        lines.push(`<span style="color:#4ade80">${t.title.toUpperCase()}: ${t.current}/${t.target} ${t.unit} — target met.</span>`);
+                    } else if (t.pct >= 50) {
+                        score += 0.5;
+                        lines.push(`<span style="color:#fbbf24">${t.title.toUpperCase()}: ${t.current}/${t.target} ${t.unit} (${t.pct}%) — keep going.</span>`);
+                    } else {
+                        lines.push(`<span style="color:#f87171">${t.title.toUpperCase()}: ${t.current}/${t.target} ${t.unit} (${t.pct}%) — behind. Fix it now.</span>`);
+                    }
+                });
+            }
 
             // SCHEDULE assessment
             if (p.events.total === 0) { lines.push(`<span style="color:#f87171">SCHEDULE: zero events. Block at least one focused work block or training slot.</span>`); }
-            else { score += 0.5; lines.push(`<span style="color:#d8b4fe">SCHEDULE: ${p.events.total} event${p.events.total > 1 ? 's' : ''} planned. Protect the most important block and execute it first.</span>`); }
+            else { score += 1; lines.push(`<span style="color:#d8b4fe">SCHEDULE: ${p.events.total} event${p.events.total > 1 ? 's' : ''} planned. Protect the most important block.</span>`); }
 
             // Overall verdict
-            const maxScore = 5;
-            const pct = Math.round((score / maxScore) * 100);
+            const maxScore = 3 + p.trackable.length;
+            const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
             let verdict, vtype;
             if (pct >= 70) {
-                verdict = `<div style="margin-top:10px;padding:8px;background:rgba(34,197,94,.1);border:0.5px solid rgba(34,197,94,.3);border-radius:6px"><strong style="color:#4ade80">SCORE: ${pct}% — SOLID</strong><br>Good execution with room to refine. Type "recommend" to push one level higher.</div>`;
+                verdict = `<div style="margin-top:10px;padding:8px;background:rgba(34,197,94,.1);border:0.5px solid rgba(34,197,94,.3);border-radius:6px"><strong style="color:#4ade80">SCORE: ${pct}% — SOLID</strong><br>Good execution. Type "recommend" to push higher.</div>`;
                 vtype = 'advice';
             } else if (pct >= 40) {
-                verdict = `<div style="margin-top:10px;padding:8px;background:rgba(251,191,36,.1);border:0.5px solid rgba(251,191,36,.3);border-radius:6px"><strong style="color:#fbbf24">SCORE: ${pct}% — MIDLINE</strong><br>Mixed signals. Pick one lever to fix today. Type "recommend" for a clear next step.</div>`;
+                verdict = `<div style="margin-top:10px;padding:8px;background:rgba(251,191,36,.1);border:0.5px solid rgba(251,191,36,.3);border-radius:6px"><strong style="color:#fbbf24">SCORE: ${pct}% — MIDLINE</strong><br>Mixed signals. Pick one lever to fix. Type "recommend".</div>`;
                 vtype = 'motivate';
             } else {
-                verdict = `<div style="margin-top:10px;padding:8px;background:rgba(239,68,68,.1);border:0.5px solid rgba(239,68,68,.3);border-radius:6px"><strong style="color:#f87171">SCORE: ${pct}% — OFF-TRACK</strong><br>No shame, just data. Start with one corrective action and rebuild momentum.</div>`;
+                verdict = `<div style="margin-top:10px;padding:8px;background:rgba(239,68,68,.1);border:0.5px solid rgba(239,68,68,.3);border-radius:6px"><strong style="color:#f87171">SCORE: ${pct}% — OFF-TRACK</strong><br>No shame, just data. Start with one corrective action.</div>`;
                 vtype = 'harsh';
             }
 
@@ -1775,34 +1836,15 @@
                 recs.push({cat: 'DISCIPLINE', text: `You skipped ${p.tasks.skipped} task${p.tasks.skipped > 1 ? 's' : ''}. Tomorrow, do the skipped ones FIRST. Avoidance compounds. Attack what you fear.`});
             }
 
-            // Exercise recommendations
-            if (!p.exercise.done) {
-                const hour = new Date().getHours();
-                if (hour < 12) {
-                    recs.push({cat: 'EXERCISE', text: 'Morning is prime time for training. Do 30 min now: 3 sets of pushups, squats, and planks to failure. Cold shower after. No negotiation.'});
-                } else if (hour < 17) {
-                    recs.push({cat: 'EXERCISE', text: 'Afternoon slot. 20 min HIIT: burpees, mountain climbers, jump squats. 40 sec on, 20 sec rest. 4 rounds. Start NOW.'});
-                } else {
-                    recs.push({cat: 'EXERCISE', text: 'Day is almost over and you haven\'t moved. Even 15 min counts: 100 pushups, 100 bodyweight squats, 2 min plank. Do it before bed or carry the shame to tomorrow.'});
+            // Trackable task recommendations
+            p.trackable.forEach(t => {
+                if (t.pct < 50) {
+                    recs.push({cat: t.title.toUpperCase(), text: `${t.current}/${t.target} ${t.unit} (${t.pct}%). You\'re behind on this. Focus on hitting the target before the day ends.`});
+                } else if (t.pct < 100) {
+                    const remaining = t.target - t.current;
+                    recs.push({cat: t.title.toUpperCase(), text: `${remaining} ${t.unit} to go. You\'re close — finish strong.`});
                 }
-            } else {
-                recs.push({cat: 'EXERCISE+', text: 'You trained today — good. Tomorrow, add more volume: extra set on each exercise, 10% more weight, or 5 more reps per set. Progressive overload is the only path to growth.'});
-            }
-
-            // Water recommendations
-            if (p.water.pct < 50) {
-                recs.push({cat: 'HYDRATION', text: `You\'re at ${p.water.current}ml. Drink 500ml right now. Set an alarm for every hour. Your cognitive performance is tanked until you fix this.`});
-            } else if (p.water.pct < 100) {
-                const remaining = p.water.target - p.water.current;
-                recs.push({cat: 'HYDRATION', text: `${remaining}ml to go. That\'s ${Math.ceil(remaining / 250)} glasses. Space them across the remaining hours. Finish strong.`});
-            }
-
-            // Sleep recommendations
-            if (p.sleep.hours !== null && p.sleep.hours < 7) {
-                recs.push({cat: 'SLEEP', text: `${p.sleep.hours}h is not enough. Tonight: screens off by 9 PM, room at 18°C, in bed by 10 PM. Target 7.5h minimum. This is non-negotiable — everything else degrades without sleep.`});
-            } else if (p.sleep.hours === null) {
-                recs.push({cat: 'SLEEP', text: 'Log your sleep. You can\'t improve what you don\'t measure. Go to Metrics, enter last night\'s hours. Do it now, before you forget.'});
-            }
+            });
 
             // Schedule recommendations
             if (p.events.total === 0) {
@@ -1816,7 +1858,7 @@
             });
 
             if (recs.length === 0) {
-                html += '<div style="padding:8px;background:rgba(34,197,94,.1);border:0.5px solid rgba(34,197,94,.3);border-radius:6px"><strong style="color:#4ade80">You\'re on track.</strong> All metrics green. Maintain discipline. The moment you think you\'ve made it is the moment you start slipping.</div>';
+                html += '<div style="padding:8px;background:rgba(34,197,94,.1);border:0.5px solid rgba(34,197,94,.3);border-radius:6px"><strong style="color:#4ade80">You\'re on track.</strong> All tasks and targets green. Maintain discipline.</div>';
             }
 
             addCoachMessage(html, 'advice');
@@ -1832,18 +1874,19 @@
             if (currentSlot !== undefined && lastFeedbackHour !== currentSlot) {
                 lastFeedbackHour = currentSlot;
                 const p = getProgressSummary();
-                const failingWater = p.water.pct < 50;
-                const failingSleep = p.sleep.hours !== null && p.sleep.hours < 6;
-                const failingExercise = !p.exercise.done && hour >= 16;
                 const failingTasks = p.tasks.active > 0 && p.tasks.completed === 0 && hour >= 12;
+                const failingTrackable = p.trackable.some(t => t.pct < 30);
 
-                if (failingWater || failingSleep || failingExercise || failingTasks) {
+                if (failingTasks || failingTrackable) {
                     let msg = `<strong>${currentSlot}:00 CHECK-IN</strong><br><br>`;
-                    if (failingTasks) msg += `Tasks: ${p.tasks.completed}/${p.tasks.active} complete. It\'s ${currentSlot}:00 and you haven\'t finished a single task. You\'re wasting the day.<br><br>`;
-                    if (failingWater) msg += `Water at ${p.water.pct}%. By ${currentSlot}:00 you should be at ${Math.round((currentSlot/20)*100)}%. You\'re behind. Drink.<br><br>`;
-                    if (failingSleep) msg += `${p.sleep.hours}h sleep logged. You\'re impaired. Compensate with discipline, not caffeine.<br><br>`;
-                    if (failingExercise) msg += `It\'s ${currentSlot}:00 and you still haven\'t exercised. The day is running out.<br><br>`;
-                    msg += `<em>This is your ${feedbackHours.indexOf(currentSlot) + 1}${['st','nd','rd','th'][feedbackHours.indexOf(currentSlot)]} check-in. I\'m watching.</em>`;
+                    if (failingTasks) msg += `Tasks: ${p.tasks.completed}/${p.tasks.active} complete. It\'s ${currentSlot}:00 and you haven\'t finished a single task.<br><br>`;
+                    if (failingTrackable) {
+                        p.trackable.filter(t => t.pct < 30).forEach(t => {
+                            msg += `${t.title}: ${t.current}/${t.target} ${t.unit} (${t.pct}%) — way behind.<br>`;
+                        });
+                        msg += '<br>';
+                    }
+                    msg += `<em>Check-in ${feedbackHours.indexOf(currentSlot) + 1} of ${feedbackHours.length}. I\'m watching.</em>`;
                     addCoachMessage(msg, 'harsh');
 
                     const banner = document.getElementById('feedbackBanner');
