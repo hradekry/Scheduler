@@ -1,7 +1,7 @@
 {
   "name": "Routine OS",
   "short_name": "Routine OS",
-  "description": "Minimalist routine tracker with AI coach and health metrics",
+  "description": "Minimalist routine tracker with AI coach and trackable tasks",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

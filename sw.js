@@ -1,8 +1,17 @@
-const CACHE_NAME = 'routine-os-v1';
+const CACHE_NAME = 'routine-os-v2';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/css/styles.css',
+  '/js/state.js',
+  '/js/utils.js',
+  '/js/storage.js',
+  '/js/alarms.js',
+  '/js/calendar.js',
+  '/js/tasks.js',
+  '/js/coach.js',
+  '/js/app.js'
 ];
 
 self.addEventListener('install', event => {
